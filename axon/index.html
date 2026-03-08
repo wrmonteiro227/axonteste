@@ -156,7 +156,6 @@
         .header-ideia { background: #151515; padding: 8px 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
         .corpo-ideia { padding: 15px; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #d1d5db; white-space: pre-wrap; }
 
-        /* Estilo do Botão na Aba Download */
         .btn-download-axon {
             background: var(--dourado);
             color: #000;
@@ -169,6 +168,13 @@
             display: block;
             margin-top: 20px;
         }
+
+        /* --- ANIMAÇÃO ANÚNCIO --- */
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; }
 
         @media (max-width: 768px) { .grid-resumo { grid-template-columns: 1fr; } .valor-acumulado { font-size: 2.2rem; } }
     </style>
@@ -184,6 +190,7 @@
         <button class="item-aba" onclick="abrirAba('aba-cofre', this)">COFRE</button>
         <button class="item-aba" onclick="abrirAba('aba-ideias', this)">IDEIAS</button>
         <button class="item-aba" onclick="abrirAba('aba-download', this)">AXON DOWNLOAD</button>
+        <button class="item-aba" onclick="logout()" style="color: #ef4444;">SAIR</button>
     </nav>
 
     <main class="p-4 md:p-8 max-w-5xl mx-auto">
@@ -311,27 +318,41 @@
 
     </main>
 
+    <div id="modal-anuncio" class="fixed inset-0 bg-black/90 z-[2000] hidden flex items-center justify-center p-6 text-center">
+        <div class="card-axon max-w-sm w-full border-2 border-[#d4af37] animate-bounce-slow">
+            <div class="logo-axon mb-4" style="font-size: 1.2rem;">AXON PRO</div>
+            <h3 class="text-white font-bold mb-2">EXPERIÊNCIA SEM INTERRUPÇÕES</h3>
+            <p class="text-gray-400 text-sm mb-6">Remova todos os anúncios e tenha acesso prioritário por apenas <span class="text-[#d4af37] font-bold">R$ 4,99</span>.</p>
+            <a href="https://wa.me/5521999999999?text=Quero%20me%20tornar%20AXON%20PRO" target="_blank" class="btn-download-axon mb-4 block text-center" style="text-decoration: none;">ADQUIRIR AGORA</a>
+            <button onclick="fecharAnuncio()" class="text-gray-500 text-[10px] uppercase tracking-widest hover:text-white transition">Continuar com anúncios (Free)</button>
+        </div>
+    </div>
+
     <script>
-// --- CONFIGURAÇÃO SUPABASE ---
+    // --- CONFIGURAÇÃO SUPABASE ---
     const SUPABASE_URL = 'https://zqvfnykxwlcozvawqgrn.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdmZueWt4d2xjb3p2YXdxZ3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3NDkzNDQsImV4cCI6MjA4NTMyNTM0NH0.CevpF9vP4748mb2vFNsOp5Kq6u7Nfp_100bJcW7ogUQ';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Variável global para armazenar o ID do usuário logado
     let USUARIO_LOGADO = null;
+    let intervalAnuncio;
+    let planoUsuario = 'free';
 
     // --- PROTEÇÃO DE ROTA E VERIFICAÇÃO DE LOGIN ---
     async function verificarSessao() {
         const { data: { session }, error } = await _supabase.auth.getSession();
-        
         if (error || !session) {
-            // Se não houver sessão, redireciona para o login
             window.location.href = "login.html";
         } else {
-            // Se houver, guarda o usuário e carrega os dados dele
             USUARIO_LOGADO = session.user;
+            checarStatusPro();
             carregarDados();
         }
+    }
+
+    async function logout() {
+        await _supabase.auth.signOut();
+        window.location.href = "login.html";
     }
 
     function abrirAba(idAba, botao) {
@@ -341,23 +362,14 @@
         botao.classList.add('ativa');
     }
 
-    // --- BANCO DE DADOS (CACHE LOCAL) ---
-    let db_financeiro = [];
-    let db_cofre = [];
-    let db_tarefas = [];
-    let db_ideias = [];
+    let db_financeiro = [], db_cofre = [], db_tarefas = [], db_ideias = [];
 
     async function carregarDados() {
-        // O RLS no Supabase garante que o select traga apenas dados do user_id logado
         const { data: fin } = await _supabase.from('financeiro').select('*');
         const { data: cof } = await _supabase.from('cofre').select('*');
         const { data: tar } = await _supabase.from('tarefas').select('*');
         const { data: ide } = await _supabase.from('ideias').select('*');
-        
-        db_financeiro = fin || [];
-        db_cofre = cof || [];
-        db_tarefas = tar || [];
-        db_ideias = ide || [];
+        db_financeiro = fin || []; db_cofre = cof || []; db_tarefas = tar || []; db_ideias = ide || [];
         salvarTudo();
     }
 
@@ -366,8 +378,7 @@
     function tratarDataAxon(valor) {
         let txt = valor.toLowerCase().trim();
         if (!txt) return formatarDataHoje();
-        const hoje = new Date();
-        const anoAtual = hoje.getFullYear();
+        const hoje = new Date(), anoAtual = hoje.getFullYear();
         const diasSemana = { 'domingo': 0, 'segunda': 1, 'terça': 2, 'terca': 2, 'quarta': 3, 'quinta': 4, 'sexta': 5, 'sábado': 6, 'sabado': 6 };
         if (diasSemana[txt] !== undefined) {
             let dataResult = new Date();
@@ -388,10 +399,7 @@
             lista.forEach(item => {
                 if (item.status === 'pago' || item.status === 'feita' || item.sem_prazo) return;
                 const p = item.data.split('/'); const venc = new Date(p[2], p[1] - 1, p[0]);
-                if (venc < hoje) { 
-                    item.status = 'atrasado'; 
-                    item.motivo_atraso = `Atrasado ${Math.ceil(Math.abs(hoje - venc) / (1000 * 60 * 60 * 24))} dias`; 
-                }
+                if (venc < hoje) { item.status = 'atrasado'; item.motivo_atraso = `Atrasado ${Math.ceil(Math.abs(hoje - venc) / (1000 * 60 * 60 * 24))} dias`; }
             });
         };
         verificar(db_financeiro); verificar(db_tarefas);
@@ -406,8 +414,7 @@
         if (item) {
             const novoStatus = (item.status === 'pago' || item.status === 'feita') ? 'pendente' : (tabela === 'tarefas' ? 'feita' : 'pago');
             await _supabase.from(tabela).update({ status: novoStatus }).eq('id', id);
-            item.status = novoStatus;
-            salvarTudo();
+            item.status = novoStatus; salvarTudo();
         }
     }
 
@@ -425,9 +432,7 @@
         const n = document.getElementById('reg-nome').value.trim(), v = document.getElementById('reg-valor').value.trim(), d = document.getElementById('reg-data').value.trim();
         if (n && v && USUARIO_LOGADO) { 
             const novo = { id: Date.now(), nome: n, valor: v, data: tratarDataAxon(d), status: 'pendente', motivo_atraso: '', tipo: 'recebimento', user_id: USUARIO_LOGADO.id };
-            await _supabase.from('financeiro').insert([novo]);
-            db_financeiro.push(novo);
-            salvarTudo(); 
+            await _supabase.from('financeiro').insert([novo]); db_financeiro.push(novo); salvarTudo(); 
             ['reg-nome', 'reg-valor', 'reg-data'].forEach(i => document.getElementById(i).value = ''); 
         }
     }
@@ -436,9 +441,7 @@
         const n = document.getElementById('pag-nome').value.trim(), v = document.getElementById('pag-valor').value.trim(), d = document.getElementById('pag-data').value.trim();
         if (n && v && USUARIO_LOGADO) { 
             const novo = { id: Date.now(), nome: n, valor: v, data: tratarDataAxon(d), status: 'pendente', motivo_atraso: '', tipo: 'pagamento', user_id: USUARIO_LOGADO.id };
-            await _supabase.from('financeiro').insert([novo]);
-            db_financeiro.push(novo);
-            salvarTudo(); 
+            await _supabase.from('financeiro').insert([novo]); db_financeiro.push(novo); salvarTudo(); 
             ['pag-nome', 'pag-valor', 'pag-data'].forEach(i => document.getElementById(i).value = ''); 
         }
     }
@@ -447,22 +450,17 @@
         const el = document.getElementById('input-tarefa'); const texto = el.value.trim();
         if (!texto || !USUARIO_LOGADO) return;
         const regex = /(.+?)\s+(\d{4}|\d{8}|segunda|terça|terca|quarta|quinta|sexta|sábado|sabado|domingo)$/i;
-        const match = texto.match(regex);
-        let nova;
+        const match = texto.match(regex); let nova;
         if (match) nova = { id: Date.now(), nome: match[1].trim(), data: tratarDataAxon(match[2]), status: 'pendente', sem_prazo: false, user_id: USUARIO_LOGADO.id };
         else nova = { id: Date.now(), nome: texto, data: formatarDataHoje(), status: 'pendente', sem_prazo: true, user_id: USUARIO_LOGADO.id };
-        await _supabase.from('tarefas').insert([nova]);
-        db_tarefas.push(nova);
-        el.value = ''; salvarTudo();
+        await _supabase.from('tarefas').insert([nova]); db_tarefas.push(nova); el.value = ''; salvarTudo();
     }
 
     async function registrarNoCofre() {
         const v = document.getElementById('cofre-valor').value.trim(), d = document.getElementById('cofre-data').value.trim();
         if (v && USUARIO_LOGADO) { 
             const novo = { id: Date.now(), valor: v, data: tratarDataAxon(d), user_id: USUARIO_LOGADO.id };
-            await _supabase.from('cofre').insert([novo]);
-            db_cofre.push(novo);
-            salvarTudo(); 
+            await _supabase.from('cofre').insert([novo]); db_cofre.push(novo); salvarTudo(); 
             ['cofre-valor', 'cofre-data'].forEach(i => document.getElementById(i).value = ''); 
         }
     }
@@ -471,26 +469,18 @@
         const texto = document.getElementById('input-ideia').value.trim();
         if (texto && USUARIO_LOGADO) { 
             const nova = { id: Date.now(), texto: texto, data: formatarDataHoje(), user_id: USUARIO_LOGADO.id };
-            await _supabase.from('ideias').insert([nova]);
-            db_ideias.push(nova);
-            document.getElementById('input-ideia').value = ''; salvarTudo(); 
+            await _supabase.from('ideias').insert([nova]); db_ideias.push(nova); document.getElementById('input-ideia').value = ''; salvarTudo(); 
         }
     }
 
     async function processarComandoRapido(inputId, tipo) {
         const el = document.getElementById(inputId); const comando = el.value.toLowerCase().trim();
         if (!comando) return;
-        const p1 = comando.match(/(.+?)\s+(?:me\s+)?pagou\s*([\d.]+)?/i);
-        const p2 = comando.match(/(?:me\s+)?pagou\s+(?:o\s+|a\s+)?(.+?)\s*([\d.]+)?$/i);
-        const p3 = comando.match(/(.+?)\s+(?:paguei|pago)\s*([\d.]+)?/i);
-        const p4 = comando.match(/(?:paguei|pago)\s+(?:o\s+|a\s+)?(.+?)\s*([\d.]+)?$/i);
-        let nome = ""; const m = p1 || p2 || p3 || p4; if (m) { nome = (m[1] || m[2]).trim(); }
-        if (nome) { 
+        const p = comando.match(/(.+?)\s+(?:me\s+)?pagou\s*([\d.]+)?/i) || comando.match(/(?:paguei|pago)\s+(?:o\s+|a\s+)?(.+?)\s*([\d.]+)?$/i);
+        if (p) { 
+            const nome = (p[1] || p[2]).trim();
             const alvo = db_financeiro.find(r => r.nome.toLowerCase().includes(nome) && r.status !== 'pago' && r.tipo === tipo); 
-            if (alvo) {
-                await _supabase.from('financeiro').update({ status: 'pago' }).eq('id', alvo.id);
-                alvo.status = 'pago';
-            }
+            if (alvo) { await _supabase.from('financeiro').update({ status: 'pago' }).eq('id', alvo.id); alvo.status = 'pago'; }
         }
         el.value = ''; salvarTudo();
     }
@@ -524,33 +514,42 @@
         renderTarefas();
 
         const lC = document.getElementById('lista-cofre'); lC.innerHTML = ''; let sCof = 0;
-        db_cofre.slice().sort((a,b) => b.id - a.id).forEach(i => { sCof += formatarParaSoma(i.valor); lC.innerHTML += `<div class="item-axon" style="border-left: 4px solid #fff;"><div><div class="font-bold text-white">Depósito</div><div class="text-[10px] text-gray-500">Data: ${i.data}</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${i.valor}</div><div class="btn-lixeira" onclick="deletarItem('cofre', ${i.id})">🗑️</div></div></div>`; });
+        db_cofre.forEach(i => { sCof += formatarParaSoma(i.valor); lC.innerHTML += `<div class="item-axon" style="border-left: 4px solid #fff;"><div><div class="font-bold text-white">Depósito</div><div class="text-[10px] text-gray-500">Data: ${i.data}</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${i.valor}</div><div class="btn-lixeira" onclick="deletarItem('cofre', ${i.id})">🗑️</div></div></div>`; });
         document.getElementById('valor-cofre-total').innerText = `R$ ${sCof.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
         const mural = document.getElementById('mural-ideias'); mural.innerHTML = '';
         db_ideias.slice().sort((a,b) => b.id - a.id).forEach(i => { mural.innerHTML += `<div class="balao-ideia"><div class="header-ideia"><span style="font-size: 0.6rem; color: #666;">LOG: ${i.data}</span><div class="btn-lixeira" onclick="deletarItem('ideias', ${i.id})">🗑️</div></div><div class="corpo-ideia">${i.texto}</div></div>`; });
     }
 
-    // --- LÓGICA DE INSTALAÇÃO ---
+    // --- LÓGICA DE MONETIZAÇÃO ---
+    async function checarStatusPro() {
+        if (!USUARIO_LOGADO) return;
+        const { data } = await _supabase.from('profiles').select('plano').eq('id', USUARIO_LOGADO.id).single();
+        if (data && data.plano === 'pro') {
+            planoUsuario = 'pro';
+        } else {
+            iniciarCicloAnuncios();
+        }
+    }
+
+    function iniciarCicloAnuncios() {
+        if (intervalAnuncio) clearInterval(intervalAnuncio);
+        intervalAnuncio = setInterval(() => {
+            if (planoUsuario === 'free') document.getElementById('modal-anuncio').classList.remove('hidden');
+        }, 30000); 
+    }
+
+    function fecharAnuncio() { document.getElementById('modal-anuncio').classList.add('hidden'); }
+
+    // --- INSTALAÇÃO PWA ---
     let promptInstalacao;
     const btnInstalar = document.getElementById('btnInstalar');
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); promptInstalacao = e; btnInstalar.style.display = 'block'; });
     btnInstalar.addEventListener('click', async () => {
-        if (!promptInstalacao) { alert("Para instalar, use a opção 'Adicionar à tela de início' no menu do seu navegador."); return; }
-        promptInstalacao.prompt();
-        const { outcome } = await promptInstalacao.userChoice;
-        if (outcome === 'accepted') { promptInstalacao = null; btnInstalar.style.display = 'none'; }
+        if (promptInstalacao) { promptInstalacao.prompt(); promptInstalacao = null; btnInstalar.style.display = 'none'; }
     });
-    window.addEventListener('appinstalled', () => { btnInstalar.style.display = 'none'; promptInstalacao = null; });
 
-    // --- INICIALIZAÇÃO SEGURA ---
     verificarSessao();
-
-    if ('serviceWorker' in navigator) { 
-        window.addEventListener('load', () => { 
-            navigator.serviceWorker.register('sw.js').catch(err => console.log("SW Erro:", err)); 
-        }); 
-    }
     </script>
 </body>
 </html>
