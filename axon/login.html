@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXON - Login</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&display=swap" rel="stylesheet">
+
+<style>
+body{
+background:#050505;
+color:white;
+font-family:Inter;
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+}
+
+.card{
+background:#111;
+border:1px solid rgba(212,175,55,0.2);
+padding:40px;
+border-radius:15px;
+width:320px;
+}
+
+.logo{
+color:#d4af37;
+font-size:30px;
+font-weight:900;
+letter-spacing:8px;
+text-align:center;
+margin-bottom:30px;
+}
+
+input{
+width:100%;
+background:black;
+border:1px solid #333;
+padding:12px;
+border-radius:8px;
+margin-bottom:12px;
+}
+
+button{
+width:100%;
+padding:12px;
+border-radius:8px;
+font-weight:700;
+margin-top:10px;
+}
+
+.btn-login{
+background:#d4af37;
+color:black;
+}
+
+.btn-reg{
+background:transparent;
+border:1px solid #d4af37;
+color:#d4af37;
+}
+
+.msg{
+font-size:12px;
+margin-top:10px;
+color:#888;
+text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="logo">AXON</div>
+
+<input id="email" type="email" placeholder="Email">
+<input id="senha" type="password" placeholder="Senha">
+
+<button class="btn-login" onclick="login()">ENTRAR</button>
+
+<button class="btn-reg" onclick="registro()">CRIAR CONTA</button>
+
+<div id="msg" class="msg"></div>
+
+</div>
+
+<script src="auth.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>AXON - Gestão Premium</title>
+
+<link rel="manifest" href="manifest.json">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+--dourado:#d4af37;
+--preto:#050505;
+--card:#111;
+}
+
+body{
+background:var(--preto);
+color:#e2e8f0;
+font-family:Inter;
+margin:0;
+}
+
+.barra-topo{
+background:#000;
+height:70px;
+display:flex;
+align-items:center;
+justify-content:center;
+border-bottom:2px solid var(--dourado);
+}
+
+.logo-axon{
+color:var(--dourado);
+font-weight:900;
+font-size:2rem;
+letter-spacing:10px;
+}
+
+.menu-abas{
+display:flex;
+overflow-x:auto;
+background:#0a0a0a;
+}
+
+.item-aba{
+padding:14px 18px;
+font-size:.7rem;
+color:#555;
+font-weight:bold;
+border-bottom:3px solid transparent;
+}
+
+.item-aba.ativa{
+color:var(--dourado);
+border-bottom:3px solid var(--dourado);
+}
+
+.card{
+background:#111;
+border:1px solid #222;
+border-radius:10px;
+padding:20px;
+margin-bottom:20px;
+}
+
+.input{
+background:#000;
+border:1px solid #333;
+color:#fff;
+padding:10px;
+border-radius:6px;
+width:100%;
+margin-bottom:8px;
+}
+
+.btn{
+background:var(--dourado);
+border:none;
+padding:10px;
+color:#000;
+font-weight:bold;
+cursor:pointer;
+border-radius:6px;
+}
+
+.badge{
+padding:4px 10px;
+font-size:.65rem;
+border-radius:4px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.pendente{color:var(--dourado)}
+.pago{color:#10b981}
+.atrasado{color:#ef4444}
+
+</style>
+</head>
+
+<body>
+
+<header class="barra-topo">
+<div class="logo-axon">AXON</div>
+</header>
+
+<main class="p-4 max-w-4xl mx-auto">
+
+<div class="card">
+
+<input id="nome" class="input" placeholder="Nome">
+<input id="valor" class="input" placeholder="Valor">
+
+<button onclick="registrar()" class="btn">
+Registrar
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>Registros</h3>
+
+<div id="lista"></div>
+
+</div>
+
+</main>
+
+<script>
+
+const SUPABASE_URL="https://zqvfnykxwlcozvawqgrn.supabase.co"
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdmZueWt4d2xjb3p2YXdxZ3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3NDkzNDQsImV4cCI6MjA4NTMyNTM0NH0.CevpF9vP4748mb2vFNsOp5Kq6u7Nfp_100bJcW7ogUQ"
+
+const _supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+
+let usuario=null
+let db=[]
+
+async function verificarLogin(){
+
+const {data}=await _supabase.auth.getSession()
+
+if(!data.session){
+
+window.location.href="login.html"
+return
+
+}
+
+usuario=data.session.user
+
+carregar()
+
+}
+
+async function carregar(){
+
+const {data}=await _supabase
+.from("financeiro")
+.select("*")
+.eq("user_id",usuario.id)
+
+db=data||[]
+
+render()
+
+}
+
+async function registrar(){
+
+const nome=document.getElementById("nome").value
+const valor=document.getElementById("valor").value
+
+if(!nome||!valor)return
+
+const novo={
+id:Date.now(),
+nome:nome,
+valor:valor,
+status:"pendente",
+user_id:usuario.id
+}
+
+await _supabase.from("financeiro").insert([novo])
+
+db.push(novo)
+
+render()
+
+}
+
+async function toggle(id){
+
+let item=db.find(x=>x.id==id)
+
+const novo=item.status=="pago"?"pendente":"pago"
+
+await _supabase
+.from("financeiro")
+.update({status:novo})
+.eq("id",id)
+
+item.status=novo
+
+render()
+
+}
+
+function render(){
+
+const lista=document.getElementById("lista")
+
+lista.innerHTML=""
+
+db.forEach(i=>{
+
+lista.innerHTML+=`
+
+<div style="display:flex;justify-content:space-between;margin-top:8px">
+
+<div>
+${i.nome} - R$ ${i.valor}
+</div>
+
+<div class="badge ${i.status}" onclick="toggle(${i.id})">
+
+${i.status}
+
+</div>
+
+</div>
+
+`
+
+})
+
+}
+
+verificarLogin()
+
+</script>
+
+</body>
+</html>
