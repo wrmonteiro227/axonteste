@@ -1,98 +1,137 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AXON - Login</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+<title>AXON Login</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&display=swap" rel="stylesheet">
-
 <style>
+
 body{
 background:#050505;
 color:white;
-font-family:Inter;
+font-family:Arial;
 display:flex;
-align-items:center;
 justify-content:center;
+align-items:center;
 height:100vh;
+margin:0;
 }
 
-.card{
+.box{
+
 background:#111;
-border:1px solid rgba(212,175,55,0.2);
 padding:40px;
-border-radius:15px;
-width:320px;
-}
+border-radius:10px;
+width:300px;
 
-.logo{
-color:#d4af37;
-font-size:30px;
-font-weight:900;
-letter-spacing:8px;
-text-align:center;
-margin-bottom:30px;
 }
 
 input{
+
 width:100%;
-background:black;
+padding:10px;
+margin:10px 0;
+background:#000;
 border:1px solid #333;
-padding:12px;
-border-radius:8px;
-margin-bottom:12px;
+color:white;
+
 }
 
 button{
+
 width:100%;
-padding:12px;
-border-radius:8px;
-font-weight:700;
-margin-top:10px;
-}
-
-.btn-login{
+padding:10px;
 background:#d4af37;
-color:black;
+border:none;
+cursor:pointer;
+font-weight:bold;
+
 }
 
-.btn-reg{
-background:transparent;
-border:1px solid #d4af37;
+a{
 color:#d4af37;
+cursor:pointer;
 }
 
-.msg{
-font-size:12px;
-margin-top:10px;
-color:#888;
-text-align:center;
-}
 </style>
+
 </head>
 
 <body>
 
-<div class="card">
+<div class="box">
 
-<div class="logo">AXON</div>
+<h2>AXON</h2>
 
-<input id="email" type="email" placeholder="Email">
+<input id="email" placeholder="Email">
+
 <input id="senha" type="password" placeholder="Senha">
 
-<button class="btn-login" onclick="login()">ENTRAR</button>
+<button onclick="login()">Entrar</button>
 
-<button class="btn-reg" onclick="registro()">CRIAR CONTA</button>
-
-<div id="msg" class="msg"></div>
+<p>Não tem conta? <a onclick="registro()">Criar conta</a></p>
 
 </div>
 
-<script src="auth.js"></script>
+<script>
+
+const SUPABASE_URL = "https://zqvfnykxwlcozvawqgrn.supabase.co"
+
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdmZueWt4d2xjb3p2YXdxZ3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3NDkzNDQsImV4cCI6MjA4NTMyNTM0NH0.CevpF9vP4748mb2vFNsOp5Kq6u7Nfp_100bJcW7ogUQ"
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+async function login(){
+
+const email = document.getElementById("email").value
+const senha = document.getElementById("senha").value
+
+const { error } = await supabaseClient.auth.signInWithPassword({
+email:email,
+password:senha
+})
+
+if(error){
+
+alert(error.message)
+
+}else{
+
+window.location.href="index.html"
+
+}
+
+}
+
+async function registro(){
+
+const email = document.getElementById("email").value
+const senha = document.getElementById("senha").value
+
+const { error } = await supabaseClient.auth.signUp({
+email:email,
+password:senha
+})
+
+if(error){
+
+alert(error.message)
+
+}else{
+
+alert("Conta criada! Agora faça login.")
+
+}
+
+}
+
+</script>
 
 </body>
 </html>
