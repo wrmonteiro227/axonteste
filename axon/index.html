@@ -437,6 +437,12 @@
             <div class="card-axon">
                 <h2 class="titulo-lista"><span>●</span> NOVO APORTE</h2>
                 <input type="text" id="cofre-valor" class="axon-input mb-2" placeholder="VALOR:">
+                
+                <div class="flex items-center gap-2 mb-3">
+                    <input type="checkbox" id="cofre-externo" class="w-4 h-4 accent-axon-blue">
+                    <label for="cofre-externo" class="text-[10px] text-slate-400 uppercase font-bold">Dinheiro externo (Nao recebido por devedores)</label>
+                </div>
+
                 <button class="btn-send w-full h-12" onclick="registrarNoCofre()" style="width:100%">GUARDAR NO COFRE</button>
             </div>
             <div id="lista-cofre" class="space-y-3"></div>
@@ -675,7 +681,7 @@
     }
 
     function renderizar() {
-        let calcRecPago = 0, calcCofre = 0, calcPagPend = 0, calcGastos = 0, calcGastosHoje = 0, calcRecPend = 0, calcVendas = 0, calcVendasHoje = 0;
+        let calcRecPago = 0, calcCofre = 0, calcCofreInterno = 0, calcPagPend = 0, calcGastos = 0, calcGastosHoje = 0, calcRecPend = 0, calcVendas = 0, calcVendasHoje = 0;
         const calcHoje = formatarDataHoje();
 
         const lRec = document.getElementById('lista-status'); if(lRec) lRec.innerHTML = '';
@@ -748,7 +754,14 @@
         if (elTotalVendas) elTotalVendas.innerText = `R$ ${calcVendasHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 
         const lC = document.getElementById('lista-cofre'); if(lC) lC.innerHTML = '';
-        db_cofre.forEach(i => { calcCofre += formatarParaSoma(i.valor); if(lC) lC.innerHTML += `<div class="item-axon" style="border-left: 4px solid var(--axon-blue);"><div><div class="font-bold text-white">Depósito</div><div class="text-[10px] text-slate-500">${i.data}</div></div><div class="font-black text-white">R$ ${i.valor}</div><div class="btn-lixeira" onclick="deletarItem('cofre', ${i.id})">🗑️</div></div>`; });
+        db_cofre.forEach(i => { 
+            let valorCofreNum = formatarParaSoma(i.valor);
+            calcCofre += valorCofreNum; 
+            if (i.externo !== true) {
+                calcCofreInterno += valorCofreNum;
+            }
+            if(lC) lC.innerHTML += `<div class="item-axon" style="border-left: 4px solid var(--axon-blue);"><div><div class="font-bold text-white">Depósito${i.externo ? ' <span style="color:#2dd4bf;font-size:8px">(EXTERNO)</span>' : ''}</div><div class="text-[10px] text-slate-500">${i.data}</div></div><div class="font-black text-white">R$ ${i.valor}</div><div class="btn-lixeira" onclick="deletarItem('cofre', ${i.id})">🗑️</div></div>`; 
+        });
         document.getElementById('valor-cofre-total').innerText = `R$ ${calcCofre.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 
         if (metaFinanceira > 0) {
@@ -760,9 +773,9 @@
             if(barra) barra.style.width = `${pct}%`;
         }
 
-        // SALDO REAL = RECEBIDO + COFRE + VENDAS TOTAIS - GASTOS TOTAIS - PAGAMENTOS PENDENTES
-        const sAtual = (calcRecPago + calcCofre + calcVendas) - (calcGastos + calcPagPend);
-        const sPrevisto = (calcRecPago + calcCofre + calcVendas + calcRecPend) - (calcGastos + calcPagPend);
+        // SALDO REAL = RECEBIDO + VENDAS TOTAIS - GASTOS TOTAIS - PAGAMENTOS PENDENTES - COFRE INTERNO
+        const sAtual = (calcRecPago + calcVendas) - (calcGastos + calcPagPend + calcCofreInterno);
+        const sPrevisto = (calcRecPago + calcVendas + calcRecPend) - (calcGastos + calcPagPend + calcCofreInterno);
         
         const eSalHead = document.getElementById('header-saldo-valor');
         if (eSalHead) eSalHead.innerText = `R$ ${sAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
@@ -840,9 +853,12 @@
     async function registrarNoCofre() {
         if (!verificarLimite()) return; // TRAVA RESPEITANDO O STATUS PRO NO COFRE
         const v = document.getElementById('cofre-valor').value.trim();
+        const externo = document.getElementById('cofre-externo').checked;
         if (v && USUARIO_LOGADO) {
-            await _supabase.from('cofre').insert([{ valor: v, data: formatarDataHoje(), user_id: USUARIO_LOGADO.id }]);
-            document.getElementById('cofre-valor').value = ''; carregarDados();
+            await _supabase.from('cofre').insert([{ valor: v, data: formatarDataHoje(), user_id: USUARIO_LOGADO.id, externo: externo }]);
+            document.getElementById('cofre-valor').value = ''; 
+            document.getElementById('cofre-externo').checked = false;
+            carregarDados();
         }
     }
 
