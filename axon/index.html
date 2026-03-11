@@ -496,7 +496,18 @@
                 <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Se todos devedores pagarem:</p>
                 <div id="modal-saldo-previsto" class="text-2xl font-black text-axon-aurora">R$ 0,00</div>
             </div>
-            <button class="btn-send w-full h-12" onclick="fecharModalSaldo()">FECHAR</button>
+            
+            <div class="mb-6 text-left border-t border-slate-800 pt-4 mt-4">
+                <p class="text-[10px] text-slate-400 uppercase font-bold mb-2">Ajustar Saldo Inicial (Na Carteira/Banco)</p>
+                <div class="axon-input-group mb-0">
+                    <input type="text" id="input-caixa-inicial" class="axon-input" placeholder="R$ 0,00">
+                    <button class="btn-send" onclick="configurarCaixaInicial()">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.42-6.446z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <button class="btn-send w-full h-12 mt-4" onclick="fecharModalSaldo()">FECHAR</button>
         </div>
     </div>
 
@@ -520,6 +531,7 @@
     let itemSelecionado = null;
     let filtroReceb = '', filtroPag = '';
     let metaFinanceira = 0;
+    let caixaInicial = 0; // NOVO: Variável do caixa inicial
     let categoriaSelecionada = 'essencial';
     let filtroStatusReceb = 'todos', filtroStatusPag = 'todos';
 
@@ -546,6 +558,11 @@
 
             const localMeta = localStorage.getItem('axon_meta_' + USUARIO_LOGADO.id);
             metaFinanceira = localMeta ? parseFloat(localMeta) : 0;
+
+            // NOVO: Recupera o caixa inicial salvo no dispositivo do usuário
+            const localCaixa = localStorage.getItem('axon_caixa_inicial_' + USUARIO_LOGADO.id);
+            caixaInicial = localCaixa ? parseFloat(localCaixa) : 0;
+
             carregarDados(); 
         }
     }
@@ -587,6 +604,18 @@
         }
     }
 
+    // NOVO: Função para salvar o dinheiro que o usuário já tinha
+    function configurarCaixaInicial() {
+        const v = document.getElementById('input-caixa-inicial').value.trim();
+        if (v) {
+            caixaInicial = formatarParaSoma(v);
+            localStorage.setItem('axon_caixa_inicial_' + USUARIO_LOGADO.id, caixaInicial);
+            document.getElementById('input-caixa-inicial').value = '';
+            renderizar();
+            fecharModalSaldo();
+        }
+    }
+
     function formatarDataHoje() { const h = new Date(); return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`; }
 
     function tratarDataAxon(valor) {
@@ -615,7 +644,10 @@
         document.getElementById(id).classList.add('ativa'); b.classList.add('ativa');
     }
 
-    function abrirModalSaldo() { document.getElementById('modal-saldo-analise').style.display = 'flex'; }
+    function abrirModalSaldo() { 
+        document.getElementById('input-caixa-inicial').value = caixaInicial > 0 ? caixaInicial : ''; 
+        document.getElementById('modal-saldo-analise').style.display = 'flex'; 
+    }
     function fecharModalSaldo() { document.getElementById('modal-saldo-analise').style.display = 'none'; }
     function fecharModal() { document.getElementById('modal-financeiro').style.display = 'none'; itemSelecionado = null; }
     function abrirModalPagamento(id) { itemSelecionado = db_financeiro.find(x => x.id === id); if(!itemSelecionado) return; document.getElementById('modal-info').innerText = `${itemSelecionado.nome} | Total: R$ ${itemSelecionado.valor}`; document.getElementById('modal-input-valor').value = itemSelecionado.valor_pago_parcial || itemSelecionado.valor; document.getElementById('modal-financeiro').style.display = 'flex'; }
@@ -773,9 +805,9 @@
             if(barra) barra.style.width = `${pct}%`;
         }
 
-        // SALDO REAL = RECEBIDO + VENDAS TOTAIS - GASTOS TOTAIS - PAGAMENTOS PENDENTES - COFRE INTERNO
-        const sAtual = (calcRecPago + calcVendas) - (calcGastos + calcPagPend + calcCofreInterno);
-        const sPrevisto = (calcRecPago + calcVendas + calcRecPend) - (calcGastos + calcPagPend + calcCofreInterno);
+        // SALDO REAL CORRIGIDO = CAIXA INICIAL + VENDAS TOTAIS + RECEBIDO PAGO - (GASTOS TOTAIS + PAGAMENTOS PENDENTES + PAGAMENTOS PAGOS + COFRE INTERNO)
+        const sAtual = (caixaInicial + calcRecPago + calcVendas) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
+        const sPrevisto = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
         
         const eSalHead = document.getElementById('header-saldo-valor');
         if (eSalHead) eSalHead.innerText = `R$ ${sAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
