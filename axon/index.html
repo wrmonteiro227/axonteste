@@ -250,7 +250,12 @@
             box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
         }
 
-        @media (max-width: 768px) { .grid-resumo { grid-template-columns: 1fr; } .valor-acumulado { font-size: 2.2rem; } }
+        @media (max-width: 768px) { 
+            .grid-resumo { grid-template-columns: 1fr; } 
+            .valor-acumulado { font-size: 2.2rem; } 
+            .header-saldo-container { right: 15px; } 
+            .header-saldo-valor { font-size: 0.75rem; filter: blur(4px); } 
+        }
 
         .chip-filtro { padding: 6px 12px; font-size: 0.6rem; border-radius: 20px; border: 1px solid #1e293b; background: rgba(0,0,0,0.3); color: #475569; cursor: pointer; transition: 0.3s; margin-right: 5px; white-space: nowrap; }
         .chip-filtro.ativo { border-color: var(--axon-blue); color: var(--axon-blue); background: rgba(59, 130, 246, 0.1); }
