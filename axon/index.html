@@ -228,7 +228,7 @@
         .btn-categoria.active[data-cat="investimento"] { border-color: var(--axon-aurora); background: rgba(45,212,191,0.1); color: var(--axon-aurora); }
 
         /* --- MODAIS --- */
-        #modal-financeiro, #modal-saldo-analise {
+        #modal-financeiro, #modal-saldo-analise, #modal-limite-pro {
             display: none;
             position: fixed;
             inset: 0;
@@ -239,6 +239,7 @@
             justify-content: center;
             padding: 20px;
         }
+        #modal-limite-pro { z-index: 3000; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); }
         .modal-card {
             background: var(--cinza-card);
             border: 1px solid var(--axon-blue);
@@ -493,6 +494,15 @@
         </div>
     </div>
 
+    <div id="modal-limite-pro">
+        <div class="modal-card" style="border-color: var(--axon-aurora);">
+            <div class="logo-axon mb-4" style="font-size: 1.5rem;">LIMITE ATINGIDO</div>
+            <p class="text-gray-400 text-sm mb-6">Você atingiu o limite de 10 registros da versão gratuita. Sua gestão está crescendo! Desbloqueie registros ilimitados no AXON Pro agora.</p>
+            <button class="btn-send w-full h-12 mb-4 font-black" onclick="window.open('https://www.asaas.com/c/93icx3ukbidlulul')">QUERO SER PRO 🚀</button>
+            <button class="text-xs text-slate-500 uppercase tracking-widest" onclick="document.getElementById('modal-limite-pro').style.display='none'">Voltar</button>
+        </div>
+    </div>
+
     <script src="gastos.js"></script>
     <script>
     const SUPABASE_URL = 'https://zqvfnykxwlcozvawqgrn.supabase.co';
@@ -507,11 +517,27 @@
     let categoriaSelecionada = 'essencial';
     let filtroStatusReceb = 'todos', filtroStatusPag = 'todos';
 
+    const LIMITE_GRATUITO = 10;
+    let USUARIO_PRO = false; // Começa como free por padrão
+
     async function verificarSessao() {
         const { data: { session } } = await _supabase.auth.getSession();
         if (!session) window.location.href = "login.html";
         else { 
             USUARIO_LOGADO = session.user; 
+            
+            // --- BUSCA O PLANO NO SUPABASE ---
+            const { data: perfil } = await _supabase
+                .from('profiles') 
+                .select('plano')
+                .eq('id', USUARIO_LOGADO.id)
+                .single();
+
+            if (perfil && perfil.plano === 'pro') {
+                USUARIO_PRO = true;
+                console.log("Acesso PRO Liberado!");
+            }
+
             const localMeta = localStorage.getItem('axon_meta_' + USUARIO_LOGADO.id);
             metaFinanceira = localMeta ? parseFloat(localMeta) : 0;
             carregarDados(); 
@@ -525,6 +551,18 @@
         const { data: ide } = await _supabase.from('ideias').select('*');
         db_financeiro = fin || []; db_cofre = cof || []; db_tarefas = tar || []; db_ideias = ide || [];
         salvarTudo();
+    }
+
+    // NOVA LÓGICA DE VERIFICAÇÃO QUE SOMA TUDO E RESPEITA O STATUS PRO
+    function verificarLimite() {
+        if (USUARIO_PRO) return true; // Se for PRO, ignora a trava
+
+        const totalTotal = db_financeiro.length + db_cofre.length;
+        if (totalTotal >= LIMITE_GRATUITO) {
+            document.getElementById('modal-limite-pro').style.display = 'flex';
+            return false;
+        }
+        return true;
     }
 
     function selecionarCategoria(cat, btn) {
@@ -615,6 +653,7 @@
     }
 
     async function registrarGasto() {
+        if (!verificarLimite()) return;
         const n = document.getElementById('gasto-nome').value.trim();
         const v = document.getElementById('gasto-valor').value.trim();
         if(n && v && USUARIO_LOGADO) {
@@ -625,6 +664,7 @@
     }
 
     async function registrarVenda() {
+        if (!verificarLimite()) return;
         const n = document.getElementById('venda-nome').value.trim();
         const v = document.getElementById('venda-valor').value.trim();
         if(n && v && USUARIO_LOGADO) {
@@ -767,6 +807,7 @@
     }
 
     async function registrarDivida() {
+        if (!verificarLimite()) return; 
         const n = document.getElementById('reg-nome').value.trim(), v = document.getElementById('reg-valor').value.trim(), d = document.getElementById('reg-data').value.trim();
         if (n && v && USUARIO_LOGADO) { 
             const novo = { nome: n, valor: v, data: tratarDataAxon(d), status: 'pendente', tipo: 'recebimento', user_id: USUARIO_LOGADO.id, valor_pago_parcial: 0, valor_restante: formatarParaSoma(v) };
@@ -776,6 +817,7 @@
     }
 
     async function registrarPagamento() {
+        if (!verificarLimite()) return; 
         const n = document.getElementById('pag-nome').value.trim(), v = document.getElementById('pag-valor').value.trim(), d = document.getElementById('pag-data').value.trim();
         if (n && v && USUARIO_LOGADO) { 
             const novo = { nome: n, valor: v, data: tratarDataAxon(d), status: 'pendente', tipo: 'pagamento', user_id: USUARIO_LOGADO.id, categoria: categoriaSelecionada, valor_pago_parcial: 0, valor_restante: formatarParaSoma(v) };
@@ -796,6 +838,7 @@
     }
 
     async function registrarNoCofre() {
+        if (!verificarLimite()) return; // TRAVA RESPEITANDO O STATUS PRO NO COFRE
         const v = document.getElementById('cofre-valor').value.trim();
         if (v && USUARIO_LOGADO) {
             await _supabase.from('cofre').insert([{ valor: v, data: formatarDataHoje(), user_id: USUARIO_LOGADO.id }]);
