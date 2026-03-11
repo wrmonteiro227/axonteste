@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AXON - Galaxy Edition | Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* --- IDENTIDADE VISUAL AXON GALAXY --- */
+        :root {
+            --axon-blue: #3b82f6;
+            --axon-aurora: #2dd4bf;
+            --preto-profundo: #020617; 
+            --cinza-card: rgba(15, 23, 42, 0.7);
+            --cinza-hover: #1e293b;
+        }
+
+        body {
+            background-color: var(--preto-profundo);
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        /* --- NEBULOSA GALAXY FORÇADA --- */
+        .nebulosa {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px); 
+            z-index: -1;
+            opacity: 0.35;
+            pointer-events: none;
+            animation: moveNebula 20s infinite alternate ease-in-out;
+        }
+        .n1 { background: radial-gradient(circle, var(--axon-blue), transparent 70%); top: -10%; right: -10%; }
+        .n2 { background: radial-gradient(circle, #a855f7, transparent 70%); bottom: -10%; left: -10%; animation-delay: -10s; }
+
+        @keyframes moveNebula {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(100px, 100px) scale(1.2); }
+        }
+
+        /* --- TELA DE LOGIN --- */
+        .login-box {
+            background: var(--cinza-card);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(59, 130, 246, 0.15);
+            backdrop-filter: blur(15px);
+            margin-top: 5vh;
+            margin-bottom: 60px;
+        }
+
+        .logo-axon {
+            background: linear-gradient(to right, var(--axon-blue), var(--axon-aurora));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            font-size: 3rem;
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        .axon-input {
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 15px;
+            background: #000;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        .axon-input:focus { border-color: var(--axon-blue); box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(45deg, var(--axon-blue), var(--axon-aurora));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        .btn-login:active { transform: scale(0.95); }
+
+        .link-registro {
+            color: var(--axon-aurora);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-top: 25px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .link-registro:hover { text-shadow: 0 0 10px var(--axon-aurora); }
+
+        /* --- MANUAL DO SISTEMA --- */
+        .tutorial-container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 40px;
+        }
+
+        .tut-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .tut-header h2 { color: #fff; font-weight: 900; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+        .tut-header p { color: #94a3b8; font-size: 0.95rem; line-height: 1.6; }
+
+        .tut-secao {
+            background: rgba(15, 23, 42, 0.4);
+            border-left: 3px solid var(--axon-blue);
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 25px;
+        }
+
+        .tut-secao h3 {
+            color: var(--axon-aurora);
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tut-secao p {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin-bottom: 8px;
+        }
+
+        .tut-secao span.destaque { color: white; font-weight: bold; }
+        
+        .cat-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; background: rgba(0,0,0,0.5); border: 1px solid #333;}
+        .cat-lazer { border-color: #a855f7; color: #a855f7; }
+        .cat-invest { border-color: var(--axon-aurora); color: var(--axon-aurora); }
+        .cat-esse { border-color: #fff; color: #fff; }
+
+        @media (max-width: 768px) {
+            .tutorial-container { padding: 25px 20px; }
+            .login-box { padding: 40px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nebulosa n1"></div>
+    <div class="nebulosa n2"></div>
+
+    <div class="login-box">
+        <div class="logo-axon">AXON</div>
+        <div class="subtitle">Galaxy Edition</div>
+
+        <input id="email" class="axon-input" placeholder="Seu Email de Acesso" type="email">
+        <input id="senha" class="axon-input" type="password" placeholder="Sua Senha">
+
+        <button class="btn-login" onclick="login()">ENTRAR</button>
+        
+        <p><a class="link-registro" onclick="registro()">Não tem conta? Criar conta agora</a></p>
+    </div>
+
+    <div class="tutorial-container">
+        <div class="tut-header">
+            <h2>O Sistema Definitivo</h2>
+            <p>O <strong>AXON Galaxy Edition</strong> não é apenas um aplicativo de finanças; é um Centro de Comando Pessoal e Profissional. Ele foi desenhado para te dar o controle absoluto sobre o seu dinheiro que entra, o dinheiro que sai, o dinheiro que te devem, suas obrigações diárias e a construção do seu patrimônio. Tudo isso blindado com um sistema de privacidade visual.</p>
+            <p style="margin-top: 10px; color: var(--axon-blue); font-weight: bold;">Aqui está o tutorial detalhado de cada peça dessa máquina:</p>
+        </div>
+
+        <div class="tut-secao" style="border-color: #fff;">
+            <h3>👁️ O Topo: O Saldo Real Privado</h3>
+            <p>A primeira coisa que você vê é o seu Saldo no topo da tela. Ele nasce borrado (com blur).</p>
+            <p><span class="destaque">Para que serve:</span> Privacidade. Ninguém que estiver do seu lado ou olhando por cima do seu ombro vai ver quanto você tem de dinheiro.</p>
+            <p><span class="destaque">Como usar:</span> Ao clicar em "Exibir", o AXON abre o Modal de Análise de Caixa.</p>
+            <p>• <span class="destaque" style="color: var(--axon-aurora);">Saldo Livre Hoje:</span> É a matemática fria e real. Ele pega tudo o que você já recebeu + o que tá no Cofre + suas Vendas diárias, e subtrai tudo o que você já Gastou + as Contas que ainda tem que pagar. É o dinheiro que você realmente tem livre.</p>
+            <p>• <span class="destaque" style="color: var(--axon-blue);">Saldo Previsto (Se todos pagarem):</span> É o seu Saldo Hoje somado a todas as dívidas pendentes que as pessoas têm com você. Mostra o seu potencial de caixa futuro.</p>
+        </div>
+
+        <div class="tut-secao">
+            <h3>💰 1. Aba RECEBIMENTOS (A Arte da Cobrança)</h3>
+            <p><span class="destaque">Para que serve:</span> Controlar quem te deve dinheiro, fiados ou serviços prestados a prazo.</p>
+            <p><span class="destaque">Como funciona:</span> Você registra o nome do devedor, o valor e a data combinada.</p>
+            <p><span class="destaque">Diferencial:</span> Se a pessoa te pagar só uma parte (ex: devia R$ 100 e pagou R$ 50), você clica no status (Pendente), digita quanto ela pagou, e o AXON muda o status para "Negociando" (na cor Lilás), calculando sozinho quanto ainda falta receber.</p>
+            <p><span class="destaque">Busca Sniper:</span> Filtros rápidos. Quer ver só quem está Atrasado? Clica no chip. Quer procurar pelo nome do devedor? Digita na barra de busca e a lista é filtrada como um tiro de precisão.</p>
+        </div>
+
+        <div class="tut-secao" style="border-color: var(--axon-aurora);">
+            <h3>🛒 2. Aba VENDAS (Fluxo de Caixa Rápido)</h3>
+            <p><span class="destaque">Para que serve:</span> Registrar o dinheiro limpo que entra na hora. Fez um serviço de balcão? Vendeu um produto no Pix ou dinheiro vivo? É aqui que você anota.</p>
+            <p><span class="destaque">Como funciona:</span> Coloca o que vendeu e o valor. Ele já carimba a data de hoje.</p>
+            <p><span class="destaque">Por que é vital:</span> Diferente de uma dívida (que alguém vai te pagar no futuro), a Venda é dinheiro imediato. O AXON pega esse valor e injeta na hora no seu Saldo Real para a matemática bater com o seu bolso.</p>
+        </div>
+
+        <div class="tut-secao" style="border-color: #a855f7;">
+            <h3>💸 3. Aba GASTOS DIÁRIO (O Ralo do Dinheiro)</h3>
+            <p><span class="destaque">Para que serve:</span> Mapear os pequenos (e grandes) gastos do dia a dia para você ver para onde seu dinheiro está indo. O cafézinho, o Uber, o almoço, a compra no mercado.</p>
+            <p><span class="destaque">Como funciona:</span> Anotou o gasto, ele já desconta instantaneamente do seu Saldo Real.</p>
+            <p><span class="destaque">O Truque Inteligente:</span> O painel principal mostra o "Total Gasto Hoje". Quando der meia-noite, esse contador zera para você focar no controle do novo dia, mas os registros antigos continuam salvos na lista com a data correta para você não perder o histórico.</p>
+        </div>
+
+        <div class="tut-secao" style="border-color: #ef4444;">
+            <h3>🧾 4. Aba PAGAMENTOS (Suas Obrigações)</h3>
+            <p><span class="destaque">Para que serve:</span> Registrar as contas que você tem que pagar (luz, internet, fatura do cartão, fornecedor).</p>
+            <p><span class="destaque">Como funciona:</span> Você anota a descrição, o valor, a data de vencimento e escolhe a Categoria.</p>
+            <p><span class="destaque">Identificação Visual (Cores):</span></p>
+            <p><span class="cat-badge cat-esse">🏠 Essencial</span> Contas de sobrevivência (Borda Branca/Cinza).</p>
+            <p><span class="cat-badge cat-lazer">🍿 Lazer</span> Seus luxos e diversões (Borda Lilás).</p>
+            <p><span class="cat-badge cat-invest">📈 Investimento</span> Dinheiro usado para multiplicar dinheiro (Borda Verde Água).</p>
+            <p style="margin-top: 10px; font-size: 0.8rem; color: #ef4444;">* Se você não pagar até a data definida, o sistema automaticamente acusa "Atrasado" e mostra quantos dias de atraso você tem.</p>
+        </div>
+
+        <div class="tut-secao">
+            <h3>📝 5. Aba TAREFAS (Rotina e Produtividade)</h3>
+            <p><span class="destaque">Para que serve:</span> O seu "To-Do List" diário.</p>
+            <p><span class="destaque">Como funciona:</span> Você escreve o que tem que fazer. O sistema é inteligente: se você digitar "Ir para igreja sábado", ele entende a palavra "sábado", calcula que dia do mês vai cair e já marca a data correta para você.</p>
+            <p>Quando você clica no status, ele muda para "Feito" e joga a tarefa para a aba debaixo (Tarefas Concluídas), limpando a sua visão do que ainda precisa ser feito.</p>
+        </div>
+
+        <div class="tut-secao" style="border-color: var(--axon-aurora);">
+            <h3>🏦 6. Aba COFRE (Construção de Patrimônio)</h3>
+            <p><span class="destaque">Para que serve:</span> Guardar seu dinheiro intocável e acompanhar a sua evolução financeira.</p>
+            <p><span class="destaque">Como funciona:</span> Você clica em "Configurar Meta" e define quanto quer alcançar (ex: R$ 50.000). Depois, sempre que sobrar uma grana, você registra um "Novo Aporte".</p>
+            <p><span class="destaque">O Visual:</span> O AXON pega todo o dinheiro guardado e vai preenchendo uma Barra de Progresso Galaxy (com gradiente de azul e verde), calculando a porcentagem exata de quão perto você está de atingir a sua meta de vida.</p>
+        </div>
+
+        <div class="tut-secao">
+            <h3>💡 7. Aba IDEIAS (Mural de Insights)</h3>
+            <p><span class="destaque">Para que serve:</span> Um bloco de notas blindado. Teve uma ideia de negócio no meio do banho? Pensou numa solução de código nova? Escutou uma batida pra uma música?</p>
+            <p><span class="destaque">Como funciona:</span> Você digita o texto e salva. O AXON cria um "Card" escuro, com fonte de código (Fira Code) e carimba a data daquele insight (Log) para você nunca mais esquecer as suas ideias brilhantes.</p>
+        </div>
+
+        <div class="tut-secao" style="border-color: #fff;">
+            <h3>📲 8. Aba AXON DOWNLOAD</h3>
+            <p><span class="destaque">Para que serve:</span> Instalar o sistema direto no seu celular.</p>
+            <p><span class="destaque">Como funciona:</span> Em vez de abrir o navegador toda hora, você clica neste botão. O AXON vai ser instalado na tela inicial do seu celular, com ícone próprio e funcionando em tela cheia como se fosse um aplicativo nativo baixado na loja da Apple ou do Google.</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <p style="color: var(--axon-aurora); font-weight: 900; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px;">O AXON é a sua mente organizada em formato de código</p>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://zqvfnykxwlcozvawqgrn.supabase.co"
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdmZueWt4d2xjb3p2YXdxZ3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3NDkzNDQsImV4cCI6MjA4NTMyNTM0NH0.CevpF9vP4748mb2vFNsOp5Kq6u7Nfp_100bJcW7ogUQ"
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+        async function login(){
+            const email = document.getElementById("email").value
+            const senha = document.getElementById("senha").value
+
+            const { error } = await supabaseClient.auth.signInWithPassword({
+                email:email,
+                password:senha
+            })
+
+            if(error){
+                alert(error.message)
+            }else{
+                window.location.href="index.html"
+            }
+        }
+
+        async function registro(){
+            const email = document.getElementById("email").value
+            const senha = document.getElementById("senha").value
+
+            const { error } = await supabaseClient.auth.signUp({
+                email:email,
+                password:senha
+            })
+
+            if(error){
+                alert(error.message)
+            }else{
+                alert("Conta criada! Agora faça login.")
+            }
+        }
+    </script>
+</body>
+</html>
