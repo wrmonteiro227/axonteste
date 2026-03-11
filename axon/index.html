@@ -488,10 +488,17 @@
     <div id="modal-saldo-analise">
         <div class="modal-card">
             <div class="logo-axon mb-8" style="font-size: 1rem;">ANÁLISE DE CAIXA</div>
-            <div class="mb-8">
+            
+            <div class="mb-6">
                 <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Saldo Livre Hoje</p>
                 <div id="modal-saldo-atual" class="text-3xl font-black">R$ 0,00</div>
             </div>
+
+            <div class="mb-6">
+                <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Se não tivesse gastos diários</p>
+                <div id="modal-saldo-sem-gastos" class="text-2xl font-black">R$ 0,00</div>
+            </div>
+
             <div class="mb-8 p-4 bg-slate-900/50 rounded-xl border border-axon-blue/20">
                 <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Se todos devedores pagarem:</p>
                 <div id="modal-saldo-previsto" class="text-2xl font-black text-axon-aurora">R$ 0,00</div>
@@ -531,7 +538,7 @@
     let itemSelecionado = null;
     let filtroReceb = '', filtroPag = '';
     let metaFinanceira = 0;
-    let caixaInicial = 0; // NOVO: Variável do caixa inicial
+    let caixaInicial = 0;
     let categoriaSelecionada = 'essencial';
     let filtroStatusReceb = 'todos', filtroStatusPag = 'todos';
 
@@ -544,7 +551,6 @@
         else { 
             USUARIO_LOGADO = session.user; 
             
-            // --- BUSCA O PLANO NO SUPABASE ---
             const { data: perfil } = await _supabase
                 .from('profiles') 
                 .select('plano')
@@ -559,7 +565,6 @@
             const localMeta = localStorage.getItem('axon_meta_' + USUARIO_LOGADO.id);
             metaFinanceira = localMeta ? parseFloat(localMeta) : 0;
 
-            // NOVO: Recupera o caixa inicial salvo no dispositivo do usuário
             const localCaixa = localStorage.getItem('axon_caixa_inicial_' + USUARIO_LOGADO.id);
             caixaInicial = localCaixa ? parseFloat(localCaixa) : 0;
 
@@ -576,9 +581,8 @@
         salvarTudo();
     }
 
-    // NOVA LÓGICA DE VERIFICAÇÃO QUE SOMA TUDO E RESPEITA O STATUS PRO
     function verificarLimite() {
-        if (USUARIO_PRO) return true; // Se for PRO, ignora a trava
+        if (USUARIO_PRO) return true;
 
         const totalTotal = db_financeiro.length + db_cofre.length;
         if (totalTotal >= LIMITE_GRATUITO) {
@@ -604,7 +608,6 @@
         }
     }
 
-    // NOVO: Função para salvar o dinheiro que o usuário já tinha
     function configurarCaixaInicial() {
         const v = document.getElementById('input-caixa-inicial').value.trim();
         if (v) {
@@ -805,9 +808,12 @@
             if(barra) barra.style.width = `${pct}%`;
         }
 
-        // SALDO REAL CORRIGIDO = CAIXA INICIAL + VENDAS TOTAIS + RECEBIDO PAGO - (GASTOS TOTAIS + PAGAMENTOS PENDENTES + PAGAMENTOS PAGOS + COFRE INTERNO)
+        // --- CÁLCULO DE SALDOS ---
         const sAtual = (caixaInicial + calcRecPago + calcVendas) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
         const sPrevisto = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
+        
+        // NOVO: Saldo ignorando APENAS os gastos diários da conta (mantém contas fixas subtraídas)
+        const sSemGastos = (caixaInicial + calcRecPago + calcVendas) - (calcPagPend + sPa_Pag + calcCofreInterno);
         
         const eSalHead = document.getElementById('header-saldo-valor');
         if (eSalHead) eSalHead.innerText = `R$ ${sAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
@@ -816,6 +822,13 @@
         if (elModalAtual) {
             elModalAtual.innerText = `R$ ${sAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             elModalAtual.style.color = sAtual >= 0 ? 'var(--axon-aurora)' : '#ef4444';
+        }
+
+        // Atualiza a nova exibição na tela
+        const elModalSemGastos = document.getElementById('modal-saldo-sem-gastos');
+        if (elModalSemGastos) {
+            elModalSemGastos.innerText = `R$ ${sSemGastos.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            elModalSemGastos.style.color = sSemGastos >= 0 ? '#a855f7' : '#ef4444'; // Cor roxa para diferenciar
         }
 
         const elModalPrevisto = document.getElementById('modal-saldo-previsto');
