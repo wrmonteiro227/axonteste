@@ -249,7 +249,23 @@
             max-width: 400px;
             text-align: center;
             box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
+
+        /* CAIXA DE TUTORIAL TRANSPARENTE */
+        .tutorial-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .tutorial-box strong { color: #fff; }
 
         @media (max-width: 768px) { 
             .grid-resumo { grid-template-columns: 1fr; } 
@@ -291,6 +307,18 @@
     <main class="p-4 md:p-8 max-w-5xl mx-auto">
 
         <section id="aba-devedores" class="secao-conteudo ativa">
+            
+            <div id="banner-boas-vindas" class="card-axon mb-6" style="display: none; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(45, 212, 191, 0.05)); border-color: var(--axon-blue); padding: 16px;">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-white font-bold text-sm mb-2 flex items-center gap-2"><span>👋</span> Bem-vindo ao AXON!</h3>
+                        <p class="text-[10px] text-slate-400 leading-relaxed mb-1">Para sua gestão começar perfeita, clique em <strong>SALDO REAL</strong> lá no topo da tela.</p>
+                        <p class="text-[10px] text-slate-400 leading-relaxed">Configure seu <strong>Saldo Inicial</strong> com o dinheiro que você já tem hoje no banco ou na carteira!</p>
+                    </div>
+                    <button onclick="fecharBoasVindas()" class="text-slate-500 hover:text-white transition ml-4 text-lg">✖</button>
+                </div>
+            </div>
+
             <div class="grid-resumo">
                 <div class="resumo-card"><div class="resumo-label">A Receber</div><div id="total-receber" class="resumo-valor">R$ 0,00</div></div>
                 <div class="resumo-card"><div class="resumo-label">Total Recebido</div><div id="total-receb-pago" class="resumo-valor" style="color: var(--axon-aurora);">R$ 0,00</div></div>
@@ -504,7 +532,7 @@
                 <div id="modal-saldo-previsto" class="text-2xl font-black text-axon-aurora">R$ 0,00</div>
             </div>
             
-            <div class="mb-6 text-left border-t border-slate-800 pt-4 mt-4">
+            <div class="mb-2 text-left border-t border-slate-800 pt-4 mt-4">
                 <p class="text-[10px] text-slate-400 uppercase font-bold mb-2">Ajustar Saldo Inicial (Na Carteira/Banco)</p>
                 <div class="axon-input-group mb-0">
                     <input type="text" id="input-caixa-inicial" class="axon-input" placeholder="R$ 0,00">
@@ -512,6 +540,19 @@
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.42-6.446z"/></svg>
                     </button>
                 </div>
+            </div>
+
+            <div class="tutorial-box">
+                <h4 style="color: var(--axon-blue); font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.7rem;">Como ler sua análise? 💡</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                    <li><strong>Saldo Livre Hoje:</strong> É o que você tem na mão agora. Entradas que caíram MENOS as contas e lanches que já pagou.</li>
+                    <li><strong>Se não tivesse gastos:</strong> Mostra o peso das bobeiras. É o seu saldo ignorando os gastos do dia a dia.</li>
+                    <li><strong>Se todos pagarem:</strong> A projeção ideal do seu caixa quando todos os devedores quitarem as dívidas.</li>
+                    <li style="margin-top: 5px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);">
+                        <strong style="color: var(--axon-aurora);">⚠️ Para que serve o Saldo Inicial?</strong><br>
+                        Se você pagar uma conta usando um dinheiro que <i>já estava</i> no seu banco (que você não registrou como venda ou recebimento no AXON), coloque esse valor no <b>Saldo Inicial</b> acima! Isso evita que o app ache que você tirou dinheiro do nada e deixe seu caixa negativo.
+                    </li>
+                </ul>
             </div>
 
             <button class="btn-send w-full h-12 mt-4" onclick="fecharModalSaldo()">FECHAR</button>
@@ -543,7 +584,7 @@
     let filtroStatusReceb = 'todos', filtroStatusPag = 'todos';
 
     const LIMITE_GRATUITO = 10;
-    let USUARIO_PRO = false; // Começa como free por padrão
+    let USUARIO_PRO = false; 
 
     async function verificarSessao() {
         const { data: { session } } = await _supabase.auth.getSession();
@@ -553,23 +594,36 @@
             
             const { data: perfil } = await _supabase
                 .from('profiles') 
-                .select('plano')
+                .select('plano, caixa_inicial, meta_financeira')
                 .eq('id', USUARIO_LOGADO.id)
                 .single();
 
-            if (perfil && perfil.plano === 'pro') {
-                USUARIO_PRO = true;
-                console.log("Acesso PRO Liberado!");
+            if (perfil) {
+                if (perfil.plano === 'pro') {
+                    USUARIO_PRO = true;
+                    console.log("Acesso PRO Liberado!");
+                }
+                caixaInicial = perfil.caixa_inicial ? parseFloat(perfil.caixa_inicial) : 0;
+                metaFinanceira = perfil.meta_financeira ? parseFloat(perfil.meta_financeira) : 0;
             }
 
-            const localMeta = localStorage.getItem('axon_meta_' + USUARIO_LOGADO.id);
-            metaFinanceira = localMeta ? parseFloat(localMeta) : 0;
-
-            const localCaixa = localStorage.getItem('axon_caixa_inicial_' + USUARIO_LOGADO.id);
-            caixaInicial = localCaixa ? parseFloat(localCaixa) : 0;
+            // LÓGICA DO BANNER DE BOAS-VINDAS
+            const leuBoasVindas = localStorage.getItem('axon_boas_vindas_' + USUARIO_LOGADO.id);
+            if (!leuBoasVindas) {
+                const banner = document.getElementById('banner-boas-vindas');
+                if(banner) banner.style.display = 'block';
+            }
 
             carregarDados(); 
         }
+    }
+
+    // Função para fechar e nunca mais mostrar o banner
+    function fecharBoasVindas() {
+        if (USUARIO_LOGADO) {
+            localStorage.setItem('axon_boas_vindas_' + USUARIO_LOGADO.id, 'true');
+        }
+        document.getElementById('banner-boas-vindas').style.display = 'none';
     }
 
     async function carregarDados() {
@@ -598,21 +652,21 @@
         btn.classList.add('active');
     }
 
-    function configurarMeta() {
+    async function configurarMeta() {
         const v = document.getElementById('input-meta-valor').value.trim();
-        if (v) {
+        if (v && USUARIO_LOGADO) {
             metaFinanceira = formatarParaSoma(v);
-            localStorage.setItem('axon_meta_' + USUARIO_LOGADO.id, metaFinanceira);
+            await _supabase.from('profiles').update({ meta_financeira: metaFinanceira }).eq('id', USUARIO_LOGADO.id);
             document.getElementById('input-meta-valor').value = '';
             renderizar();
         }
     }
 
-    function configurarCaixaInicial() {
+    async function configurarCaixaInicial() {
         const v = document.getElementById('input-caixa-inicial').value.trim();
-        if (v) {
+        if (v && USUARIO_LOGADO) {
             caixaInicial = formatarParaSoma(v);
-            localStorage.setItem('axon_caixa_inicial_' + USUARIO_LOGADO.id, caixaInicial);
+            await _supabase.from('profiles').update({ caixa_inicial: caixaInicial }).eq('id', USUARIO_LOGADO.id);
             document.getElementById('input-caixa-inicial').value = '';
             renderizar();
             fecharModalSaldo();
@@ -808,12 +862,9 @@
             if(barra) barra.style.width = `${pct}%`;
         }
 
-        // --- CÁLCULO DE SALDOS ---
-        const sAtual = (caixaInicial + calcRecPago + calcVendas) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
+        const sAtual = (caixaInicial + calcRecPago + calcVendas) - (calcGastos + sPa_Pag + calcCofreInterno);
+        const sSemGastos = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcPagPend + sPa_Pag + calcCofreInterno);
         const sPrevisto = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
-        
-        // NOVO: Saldo ignorando APENAS os gastos diários da conta (mantém contas fixas subtraídas)
-        const sSemGastos = (caixaInicial + calcRecPago + calcVendas) - (calcPagPend + sPa_Pag + calcCofreInterno);
         
         const eSalHead = document.getElementById('header-saldo-valor');
         if (eSalHead) eSalHead.innerText = `R$ ${sAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
@@ -824,11 +875,10 @@
             elModalAtual.style.color = sAtual >= 0 ? 'var(--axon-aurora)' : '#ef4444';
         }
 
-        // Atualiza a nova exibição na tela
         const elModalSemGastos = document.getElementById('modal-saldo-sem-gastos');
         if (elModalSemGastos) {
             elModalSemGastos.innerText = `R$ ${sSemGastos.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            elModalSemGastos.style.color = sSemGastos >= 0 ? '#a855f7' : '#ef4444'; // Cor roxa para diferenciar
+            elModalSemGastos.style.color = sSemGastos >= 0 ? '#a855f7' : '#ef4444';
         }
 
         const elModalPrevisto = document.getElementById('modal-saldo-previsto');
