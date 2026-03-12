@@ -607,7 +607,6 @@
                 metaFinanceira = perfil.meta_financeira ? parseFloat(perfil.meta_financeira) : 0;
             }
 
-            // LÓGICA DO BANNER DE BOAS-VINDAS
             const leuBoasVindas = localStorage.getItem('axon_boas_vindas_' + USUARIO_LOGADO.id);
             if (!leuBoasVindas) {
                 const banner = document.getElementById('banner-boas-vindas');
@@ -618,7 +617,6 @@
         }
     }
 
-    // Função para fechar e nunca mais mostrar o banner
     function fecharBoasVindas() {
         if (USUARIO_LOGADO) {
             localStorage.setItem('axon_boas_vindas_' + USUARIO_LOGADO.id, 'true');
@@ -637,7 +635,6 @@
 
     function verificarLimite() {
         if (USUARIO_PRO) return true;
-
         const totalTotal = db_financeiro.length + db_cofre.length;
         if (totalTotal >= LIMITE_GRATUITO) {
             document.getElementById('modal-limite-pro').style.display = 'flex';
@@ -674,6 +671,12 @@
     }
 
     function formatarDataHoje() { const h = new Date(); return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`; }
+    
+    // NOVA FUNÇÃO: Pegar a data de ontem formatada para comparar
+    function getOntemStr() {
+        let h = new Date(); h.setDate(h.getDate() - 1);
+        return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`;
+    }
 
     function tratarDataAxon(valor) {
         let txt = valor.toLowerCase().trim();
@@ -769,17 +772,31 @@
         }
     }
 
+    // NOVA FUNÇÃO: Excluir todos os registros de um dia específico (Gasto ou Venda)
+    async function deletarDia(tipo, data) {
+        if (!confirm(`Tem certeza que deseja excluir TODOS os registros do dia ${data}?`)) return;
+        await _supabase.from('financeiro').delete().eq('tipo', tipo).eq('data', data);
+        carregarDados();
+    }
+
     function renderizar() {
         let calcRecPago = 0, calcCofre = 0, calcCofreInterno = 0, calcPagPend = 0, calcGastos = 0, calcGastosHoje = 0, calcRecPend = 0, calcVendas = 0, calcVendasHoje = 0;
         const calcHoje = formatarDataHoje();
+        const ontemStr = getOntemStr();
 
         const lRec = document.getElementById('lista-status'); if(lRec) lRec.innerHTML = '';
         const lPag = document.getElementById('lista-status-pagamentos'); if(lPag) lPag.innerHTML = '';
-        const lGas = document.getElementById('lista-gastos'); if(lGas) lGas.innerHTML = '';
-        const lVen = document.getElementById('lista-vendas'); if(lVen) lVen.innerHTML = '';
+        const lGas = document.getElementById('lista-gastos');
+        const lVen = document.getElementById('lista-vendas'); 
 
         let sP_Rec = 0, sPa_Rec = 0, sA_Rec = 0;
         let sP_Pag = 0, sPa_Pag = 0, sA_Pag = 0;
+
+        // Variáveis para agrupar o histórico
+        let histGastos = {};
+        let histVendas = {};
+        let htmlGastosHoje = '';
+        let htmlVendasHoje = '';
 
         db_financeiro.forEach(i => {
             const tot = formatarParaSoma(i.valor); const pg = i.valor_pago_parcial || 0; const res = tot - pg;
@@ -818,15 +835,47 @@
             }
             else if (i.tipo === 'gasto_diario') {
                 calcGastos += tot;
-                if(i.data === calcHoje) calcGastosHoje += tot;
-                if(lGas) lGas.innerHTML += `<div class="item-axon"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
+                if(i.data === calcHoje) {
+                    calcGastosHoje += tot;
+                    htmlGastosHoje += `<div class="item-axon"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
+                } else {
+                    if(!histGastos[i.data]) histGastos[i.data] = 0;
+                    histGastos[i.data] += tot;
+                }
             }
             else if (i.tipo === 'venda_diaria') {
                 calcVendas += tot;
-                if (i.data === calcHoje) calcVendasHoje += tot;
-                if(lVen) lVen.innerHTML += `<div class="item-axon" style="border-left: 3px solid var(--axon-aurora); padding-left: 10px;"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
+                if (i.data === calcHoje) {
+                    calcVendasHoje += tot;
+                    htmlVendasHoje += `<div class="item-axon" style="border-left: 3px solid var(--axon-aurora); padding-left: 10px;"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
+                } else {
+                    if(!histVendas[i.data]) histVendas[i.data] = 0;
+                    histVendas[i.data] += tot;
+                }
             }
         });
+
+        // Monta o visual agrupado do Histórico de Gastos
+        let htmlGastosPassado = '';
+        Object.keys(histGastos).sort((a,b) => {
+            let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1);
+        }).forEach(data => {
+            let label = (data === ontemStr) ? "TOTAL GASTO ONTEM" : `TOTAL GASTO DIA ${data}`;
+            htmlGastosPassado += `<div class="item-axon" style="background: rgba(168, 85, 247, 0.05); border-left: 3px solid #a855f7; padding-left: 10px;"><div><div class="font-bold text-[11px] text-[#a855f7] uppercase">${label}</div><div class="text-[9px] text-slate-500">Resumo diário | ${data}</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histGastos[data].toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="deletarDia('gasto_diario', '${data}')">🗑️</div></div></div>`;
+        });
+
+        // Monta o visual agrupado do Histórico de Vendas
+        let htmlVendasPassado = '';
+        Object.keys(histVendas).sort((a,b) => {
+            let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1);
+        }).forEach(data => {
+            let label = (data === ontemStr) ? "TOTAL VENDAS ONTEM" : `TOTAL VENDAS DIA ${data}`;
+            htmlVendasPassado += `<div class="item-axon" style="background: rgba(45, 212, 191, 0.05); border-left: 3px solid var(--axon-aurora); padding-left: 10px;"><div><div class="font-bold text-[11px] text-[#2dd4bf] uppercase">${label}</div><div class="text-[9px] text-slate-500">Resumo diário | ${data}</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histVendas[data].toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="deletarDia('venda_diaria', '${data}')">🗑️</div></div></div>`;
+        });
+
+        // Injeta os dados na tela (Hoje + Passado)
+        if(lGas) lGas.innerHTML = htmlGastosHoje + htmlGastosPassado;
+        if(lVen) lVen.innerHTML = htmlVendasHoje + htmlVendasPassado;
 
         document.getElementById('total-receber').innerText = `R$ ${sP_Rec.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
         document.getElementById('total-receb-pago').innerText = `R$ ${sPa_Rec.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
