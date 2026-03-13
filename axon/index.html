@@ -17,8 +17,9 @@
         :root {
             --axon-blue: #3b82f6;
             --axon-aurora: #2dd4bf;
-            --preto-profundo: #020617; /* Azul Noite */
-            --cinza-card: rgba(15, 23, 42, 0.85); /* Ajustado para transparência da nebulosa */
+            --axon-gold: #f59e0b;
+            --preto-profundo: #020617; 
+            --cinza-card: rgba(15, 23, 42, 0.85); 
             --cinza-hover: #1e293b;
         }
 
@@ -297,6 +298,7 @@
         <button class="item-aba" onclick="abrirAba('aba-vendas', this)">VENDAS</button>
         <button class="item-aba" onclick="abrirAba('aba-gastos', this)">GASTOS</button>
         <button class="item-aba" onclick="abrirAba('aba-pagamentos', this)">PAGAMENTOS</button>
+        <button class="item-aba" onclick="abrirAba('aba-estoque', this)" style="color: var(--axon-gold);">ESTOQUE</button>
         <button class="item-aba" onclick="abrirAba('aba-tarefas', this)">TAREFAS</button>
         <button class="item-aba" onclick="abrirAba('aba-cofre', this)">COFRE</button>
         <button class="item-aba" onclick="abrirAba('aba-ideias', this)">IDEIAS</button>
@@ -419,6 +421,29 @@
                 </div>
                 <div id="lista-status-pagamentos" class="mt-4"></div>
             </div>
+        </section>
+
+        <section id="aba-estoque" class="secao-conteudo">
+            <div class="grid-resumo">
+                <div class="resumo-card" style="border-color: #ef4444;"><div class="resumo-label">Custo Total</div><div id="total-est-custo" class="resumo-valor" style="color: #ef4444;">R$ 0,00</div></div>
+                <div class="resumo-card" style="border-color: var(--axon-aurora);"><div class="resumo-label">Fat. Projetado</div><div id="total-est-fat" class="resumo-valor" style="color: var(--axon-aurora);">R$ 0,00</div></div>
+                <div class="resumo-card" style="border-color: #a855f7;"><div class="resumo-label">Lucro Líquido</div><div id="total-est-lucro" class="resumo-valor" style="color: #a855f7;">R$ 0,00</div></div>
+            </div>
+            
+            <div class="card-axon">
+                <h2 class="titulo-lista" style="color: var(--axon-gold);"><span>●</span> Registrar Mercadoria/Lote</h2>
+                <div class="axon-input-group"><input type="text" id="est-nome" class="axon-input" placeholder="NOME DO PRODUTO/LOTE:"></div>
+                <div class="axon-input-group"><input type="text" id="est-custo" class="axon-input" placeholder="VALOR INVESTIDO/CUSTO:"></div>
+                <div class="axon-input-group"><input type="text" id="est-faturamento" class="axon-input" placeholder="VAI RENDER QUANTO APÓS VENDER TUDO?"></div>
+                
+                <div class="flex items-center gap-2 mb-4 mt-2">
+                    <input type="checkbox" id="est-fiado" class="w-4 h-4 accent-axon-gold">
+                    <label for="est-fiado" class="text-[10px] text-slate-400 uppercase font-bold">Comprei Fiado (Gerar Dívida no Pagamentos)</label>
+                </div>
+
+                <button class="btn-send w-full h-12" onclick="registrarEstoque()" style="width:100%; background: linear-gradient(45deg, var(--axon-gold), #b45309);">CALCULAR E REGISTRAR ESTOQUE</button>
+            </div>
+            <div id="lista-estoque" class="space-y-3"></div>
         </section>
 
         <section id="aba-tarefas" class="secao-conteudo">
@@ -551,9 +576,9 @@
             <div class="tutorial-box">
                 <h4 style="color: var(--axon-blue); font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.7rem;">Como ler sua análise? 💡</h4>
                 <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
-                    <li><strong>Saldo Livre Hoje:</strong> É o que você tem na mão agora. Entradas que caíram MENOS as contas e lanches que já pagou.</li>
-                    <li><strong>Se não tivesse gastos:</strong> Mostra o peso das bobeiras. É o seu saldo ignorando os gastos do dia a dia.</li>
-                    <li><strong>Se todos pagarem:</strong> A projeção ideal do seu caixa quando todos os devedores quitarem as dívidas.</li>
+                    <li><strong>Saldo Livre Hoje:</strong> É o que você tem na mão agora. Entradas reais MENOS gastos diários e contas que já pagou. (O dinheiro pendente NÃO é subtraído daqui).</li>
+                    <li><strong>Se não tivesse gastos:</strong> É o seu Saldo Livre Hoje DEVOLVENDO os lanches e bobeiras que você já gastou.</li>
+                    <li><strong>Se todos pagarem:</strong> A projeção final ideal do seu caixa: Quita todas as dívidas pendentes, recebe dos devedores, e SOMA o lucro da sua Mercadoria Ativa do estoque!</li>
                     <li style="margin-top: 5px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);">
                         <strong style="color: var(--axon-aurora);">⚠️ Para que serve o Saldo Inicial?</strong><br>
                         Se você pagar uma conta usando um dinheiro que <i>já estava</i> no seu banco (que você não registrou como venda ou recebimento no AXON), coloque esse valor no <b>Saldo Inicial</b> acima! Isso evita que o app ache que você tirou dinheiro do nada e deixe seu caixa negativo.
@@ -581,7 +606,7 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let USUARIO_LOGADO = null;
-    let db_financeiro = [], db_cofre = [], db_tarefas = [], db_ideias = [];
+    let db_financeiro = [], db_cofre = [], db_tarefas = [], db_ideias = [], db_estoque = [];
     let itemSelecionado = null;
     let filtroReceb = '', filtroPag = '';
     let metaFinanceira = 0;
@@ -589,7 +614,6 @@
     let categoriaSelecionada = 'essencial';
     let filtroStatusReceb = 'todos', filtroStatusPag = 'todos';
 
-    // VARIÁVEIS DE SIMULAÇÃO
     let simAtual = null;
     let simSemGastos = null;
     let simPrevisto = null;
@@ -624,7 +648,6 @@
                 if(banner) banner.style.display = 'block';
             }
 
-            // Carrega as simulações salvas no celular
             let lsAtual = localStorage.getItem('axon_sim_atual_' + USUARIO_LOGADO.id);
             if(lsAtual) simAtual = parseFloat(lsAtual);
             
@@ -650,13 +673,15 @@
         const { data: cof } = await _supabase.from('cofre').select('*').order('id', {ascending: false});
         const { data: tar } = await _supabase.from('tarefas').select('*');
         const { data: ide } = await _supabase.from('ideias').select('*');
-        db_financeiro = fin || []; db_cofre = cof || []; db_tarefas = tar || []; db_ideias = ide || [];
+        const { data: est } = await _supabase.from('estoque').select('*').order('id', {ascending: false});
+
+        db_financeiro = fin || []; db_cofre = cof || []; db_tarefas = tar || []; db_ideias = ide || []; db_estoque = est || [];
         salvarTudo();
     }
 
     function verificarLimite() {
         if (USUARIO_PRO) return true;
-        const totalTotal = db_financeiro.length + db_cofre.length;
+        const totalTotal = db_financeiro.length + db_cofre.length + db_estoque.length;
         if (totalTotal >= LIMITE_GRATUITO) {
             document.getElementById('modal-limite-pro').style.display = 'flex';
             return false;
@@ -691,23 +716,20 @@
         }
     }
 
-    // NOVA LÓGICA DE SIMULAÇÃO
     function salvarSimulacao(campo, el) {
         let texto = el.innerText.replace(/[^0-9,\.\-]/g, '');
         let val = formatarParaSoma(texto);
         
-        // Se o usuário apagar tudo ou digitar 0, reseta para a conta real
         if (val === 0 || texto.trim() === '') {
             if (campo === 'atual') { simAtual = null; localStorage.removeItem('axon_sim_atual_' + USUARIO_LOGADO.id); }
             if (campo === 'sem_gastos') { simSemGastos = null; localStorage.removeItem('axon_sim_semgas_' + USUARIO_LOGADO.id); }
             if (campo === 'previsto') { simPrevisto = null; localStorage.removeItem('axon_sim_prev_' + USUARIO_LOGADO.id); }
         } else {
-            // Se for diferente de 0, salva como simulação ativa
             if (campo === 'atual') { simAtual = val; localStorage.setItem('axon_sim_atual_' + USUARIO_LOGADO.id, val); }
             if (campo === 'sem_gastos') { simSemGastos = val; localStorage.setItem('axon_sim_semgas_' + USUARIO_LOGADO.id, val); }
             if (campo === 'previsto') { simPrevisto = val; localStorage.setItem('axon_sim_prev_' + USUARIO_LOGADO.id, val); }
         }
-        renderizar(); // Força a tela a reescrever o R$ por cima e atualizar os cálculos
+        renderizar(); 
     }
 
     function formatarDataHoje() { const h = new Date(); return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`; }
@@ -746,7 +768,7 @@
     function abrirModalSaldo() { 
         document.getElementById('input-caixa-inicial').value = caixaInicial > 0 ? caixaInicial : ''; 
         document.getElementById('modal-saldo-analise').style.display = 'flex'; 
-        renderizar(); // Garante que o texto volte para R$ X se estiver quebrado
+        renderizar(); 
     }
     function fecharModalSaldo() { document.getElementById('modal-saldo-analise').style.display = 'none'; }
     function fecharModal() { document.getElementById('modal-financeiro').style.display = 'none'; itemSelecionado = null; }
@@ -812,7 +834,74 @@
         }
     }
 
-    // NOVA FUNÇÃO: Excluir todos os registros de um dia específico (Gasto ou Venda)
+    async function registrarEstoque() {
+        if (!verificarLimite()) return;
+        
+        const n = document.getElementById('est-nome').value.trim();
+        const cStr = document.getElementById('est-custo').value.trim();
+        const fStr = document.getElementById('est-faturamento').value.trim();
+        const isFiado = document.getElementById('est-fiado').checked;
+
+        if(n && cStr && fStr && USUARIO_LOGADO) {
+            const custo = formatarParaSoma(cStr);
+            const faturamento = formatarParaSoma(fStr);
+            const lucro = faturamento - custo;
+
+            const novoEstoque = { nome: n, custo: custo, faturamento: faturamento, lucro: lucro, fiado: isFiado, data: formatarDataHoje(), user_id: USUARIO_LOGADO.id, status: 'ativo' };
+            await _supabase.from('estoque').insert([novoEstoque]);
+
+            if (isFiado) {
+                const novaConta = { nome: '📦 Fornecedor: ' + n, valor: cStr, data: formatarDataHoje(), status: 'pendente', tipo: 'pagamento', user_id: USUARIO_LOGADO.id, categoria: 'investimento', valor_pago_parcial: 0, valor_restante: custo };
+                await _supabase.from('financeiro').insert([novaConta]);
+            } else {
+                const novoGasto = { nome: '📦 Compra de Estoque: ' + n, valor: cStr, data: formatarDataHoje(), status: 'gasto', tipo: 'gasto_diario', user_id: USUARIO_LOGADO.id, valor_pago_parcial: 0, valor_restante: custo };
+                await _supabase.from('financeiro').insert([novoGasto]);
+            }
+
+            document.getElementById('est-nome').value = '';
+            document.getElementById('est-custo').value = '';
+            document.getElementById('est-faturamento').value = '';
+            document.getElementById('est-fiado').checked = false;
+            carregarDados();
+            alert("Lote Registrado! O custo já foi sincronizado com o seu Financeiro.");
+        }
+    }
+
+    async function toggleEstoque(id, nome, fiado) {
+        let item = db_estoque.find(x => x.id === id);
+        if (item) {
+            const novoStatus = item.status === 'concluido' ? 'ativo' : 'concluido';
+            await _supabase.from('estoque').update({ status: novoStatus }).eq('id', id);
+            
+            if (fiado) {
+                let nomeBusca = '📦 Fornecedor: ' + nome;
+                
+                if (novoStatus === 'concluido') {
+                    let divida = db_financeiro.find(x => x.nome === nomeBusca && x.tipo === 'pagamento' && x.status !== 'pago');
+                    if (divida) {
+                        let totalVal = formatarParaSoma(divida.valor);
+                        await _supabase.from('financeiro').update({ 
+                            status: 'pago', 
+                            valor_pago_parcial: totalVal, 
+                            valor_restante: 0 
+                        }).eq('id', divida.id);
+                    }
+                } else {
+                    let divida = db_financeiro.find(x => x.nome === nomeBusca && x.tipo === 'pagamento' && x.status === 'pago');
+                    if (divida) {
+                        let totalVal = formatarParaSoma(divida.valor);
+                        await _supabase.from('financeiro').update({ 
+                            status: 'pendente', 
+                            valor_pago_parcial: 0, 
+                            valor_restante: totalVal 
+                        }).eq('id', divida.id);
+                    }
+                }
+            }
+            carregarDados();
+        }
+    }
+
     async function deletarDia(tipo, data) {
         if (!confirm(`Tem certeza que deseja excluir TODOS os registros do dia ${data}?`)) return;
         await _supabase.from('financeiro').delete().eq('tipo', tipo).eq('data', data);
@@ -828,15 +917,65 @@
         const lPag = document.getElementById('lista-status-pagamentos'); if(lPag) lPag.innerHTML = '';
         const lGas = document.getElementById('lista-gastos');
         const lVen = document.getElementById('lista-vendas'); 
+        const lEst = document.getElementById('lista-estoque'); if(lEst) lEst.innerHTML = '';
 
         let sP_Rec = 0, sPa_Rec = 0, sA_Rec = 0;
         let sP_Pag = 0, sPa_Pag = 0, sA_Pag = 0;
 
-        // Variáveis para agrupar o histórico E guardar a lista HTML
         let histGastos = {};
         let histVendas = {};
         let htmlGastosHoje = '';
         let htmlVendasHoje = '';
+
+        let calcEstCusto = 0, calcEstFat = 0, calcEstLucro = 0;
+        // VARIÁVEL NOVA DA MÁGICA DO ESTOQUE
+        let somaFaturamentoEstoqueAtivo = 0; 
+
+        db_estoque.forEach(i => {
+            if (i.status !== 'concluido') {
+                calcEstCusto += formatarParaSoma(i.custo);
+                calcEstFat += formatarParaSoma(i.faturamento);
+                calcEstLucro += formatarParaSoma(i.lucro);
+                somaFaturamentoEstoqueAtivo += formatarParaSoma(i.faturamento); // Dinheiro que vai entrar!
+            }
+
+            let badgeHtml = '';
+            if (i.status === 'concluido') {
+                badgeHtml = `<span class="badge badge-pago cursor-pointer" onclick="toggleEstoque(${i.id}, '${i.nome}', ${i.fiado})">✔ FINALIZADO/PAGO</span>`;
+            } else {
+                if (i.fiado) {
+                    badgeHtml = `<span class="badge badge-atrasado cursor-pointer" onclick="toggleEstoque(${i.id}, '${i.nome}', ${i.fiado})">FIADO (A PAGAR)</span>`;
+                } else {
+                    badgeHtml = `<span class="badge badge-pendente cursor-pointer" onclick="toggleEstoque(${i.id}, '${i.nome}', ${i.fiado})">À VISTA (ATIVO)</span>`;
+                }
+            }
+
+            if(lEst) {
+                let opacidade = i.status === 'concluido' ? 'opacity: 0.5;' : '';
+                lEst.innerHTML += `
+                <div class="item-axon flex-col items-stretch" style="border-left: 3px solid var(--axon-gold); ${opacidade}">
+                    <div class="flex justify-between items-center w-full">
+                        <div>
+                            <div class="font-bold text-white uppercase text-xs">${i.nome}</div>
+                            <div class="text-[9px] text-slate-500">${i.data}</div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            ${badgeHtml}
+                            <div class="btn-lixeira" onclick="deletarItem('estoque', ${i.id})">🗑️</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-[#1e293b]/50 text-center">
+                        <div><div class="text-[8px] text-slate-500 uppercase font-bold">Custo</div><div class="text-xs font-bold text-white">R$ ${formatarParaSoma(i.custo).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div></div>
+                        <div><div class="text-[8px] text-slate-500 uppercase font-bold">Gerar</div><div class="text-xs font-bold text-[#2dd4bf]">R$ ${formatarParaSoma(i.faturamento).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div></div>
+                        <div><div class="text-[8px] text-slate-500 uppercase font-bold">Lucro</div><div class="text-xs font-bold text-[#a855f7]">R$ ${formatarParaSoma(i.lucro).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div></div>
+                    </div>
+                </div>`;
+            }
+        });
+
+        document.getElementById('total-est-custo').innerText = `R$ ${calcEstCusto.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        document.getElementById('total-est-fat').innerText = `R$ ${calcEstFat.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        document.getElementById('total-est-lucro').innerText = `R$ ${calcEstLucro.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 
         db_financeiro.forEach(i => {
             const tot = formatarParaSoma(i.valor); const pg = i.valor_pago_parcial || 0; const res = tot - pg;
@@ -897,7 +1036,6 @@
             }
         });
 
-        // Monta o visual agrupado do Histórico de Gastos COM ACORDEÃO
         let htmlGastosPassado = '';
         Object.keys(histGastos).sort((a,b) => {
             let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1);
@@ -922,7 +1060,6 @@
             </div>`;
         });
 
-        // Monta o visual agrupado do Histórico de Vendas COM ACORDEÃO
         let htmlVendasPassado = '';
         Object.keys(histVendas).sort((a,b) => {
             let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1);
@@ -984,16 +1121,20 @@
             if(barra) barra.style.width = `${pct}%`;
         }
 
-        // LÓGICA DE SIMULAÇÃO OU CÁLCULO REAL NO MODAL
+        // --- CÁLCULO DE CAIXA REAL VS. ESTOQUE ---
+        // Atual: Caixa + Entradas - (Gastos Diários + Contas Pagas + Dinheiro no Cofre Interno)
         const calcAtual = (caixaInicial + calcRecPago + calcVendas) - (calcGastos + sPa_Pag + calcCofreInterno);
-        const calcSemGastos = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcPagPend + sPa_Pag + calcCofreInterno);
-        const calcPrevisto = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
+        
+        // Sem Gastos: É o Saldo Atual, devolvendo os gastos (Como seria se não gastasse)
+        const calcSemGastos = calcAtual + calcGastos;
+        
+        // Se Todos Pagarem: Atual + Devedores - Dívidas Pendentes + FATURAMENTO DO ESTOQUE (que injeta o lucro automaticamente)
+        const calcPrevisto = (caixaInicial + calcRecPago + calcVendas + calcRecPend + somaFaturamentoEstoqueAtivo) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
         
         const sAtual = simAtual !== null ? simAtual : calcAtual;
         const sSemGastos = simSemGastos !== null ? simSemGastos : calcSemGastos;
         const sPrevisto = simPrevisto !== null ? simPrevisto : calcPrevisto;
 
-        // O Header nunca é simulado, é o dinheiro real.
         const eSalHead = document.getElementById('header-saldo-valor');
         if (eSalHead) eSalHead.innerText = `R$ ${calcAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
 
