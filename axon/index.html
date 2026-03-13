@@ -517,19 +517,25 @@
         <div class="modal-card">
             <div class="logo-axon mb-8" style="font-size: 1rem;">ANÁLISE DE CAIXA</div>
             
-            <div class="mb-6">
-                <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Saldo Livre Hoje</p>
-                <div id="modal-saldo-atual" class="text-3xl font-black">R$ 0,00</div>
+            <div class="mb-6 text-left">
+                <p class="text-[10px] text-slate-500 uppercase font-black mb-1 flex items-center justify-between">
+                    Saldo Livre Hoje <span id="lbl-sim-atual" class="text-[8px] text-axon-blue font-normal normal-case">✏️ toque para simular</span>
+                </p>
+                <div id="modal-saldo-atual" class="text-3xl font-black outline-none border-b border-transparent focus:border-axon-blue transition-colors inline-block min-w-[100px]" contenteditable="true" inputmode="text" onfocus="this.innerText = this.innerText.replace(/[^\d,\.-]/g, '')" onblur="salvarSimulacao('atual', this)">R$ 0,00</div>
             </div>
 
-            <div class="mb-6">
-                <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Se não tivesse gastos diários</p>
-                <div id="modal-saldo-sem-gastos" class="text-2xl font-black">R$ 0,00</div>
+            <div class="mb-6 text-left">
+                <p class="text-[10px] text-slate-500 uppercase font-black mb-1 flex items-center justify-between">
+                    Se não tivesse gastos diários <span id="lbl-sim-semgas" class="text-[8px] text-[#a855f7] font-normal normal-case">✏️ toque para simular</span>
+                </p>
+                <div id="modal-saldo-sem-gastos" class="text-2xl font-black outline-none border-b border-transparent focus:border-[#a855f7] transition-colors inline-block min-w-[100px]" contenteditable="true" inputmode="text" onfocus="this.innerText = this.innerText.replace(/[^\d,\.-]/g, '')" onblur="salvarSimulacao('sem_gastos', this)">R$ 0,00</div>
             </div>
 
-            <div class="mb-8 p-4 bg-slate-900/50 rounded-xl border border-axon-blue/20">
-                <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Se todos devedores pagarem:</p>
-                <div id="modal-saldo-previsto" class="text-2xl font-black text-axon-aurora">R$ 0,00</div>
+            <div class="mb-8 p-4 bg-slate-900/50 rounded-xl border border-axon-blue/20 text-left">
+                <p class="text-[10px] text-slate-500 uppercase font-black mb-1 flex items-center justify-between">
+                    Se todos devedores pagarem <span id="lbl-sim-prev" class="text-[8px] text-axon-aurora font-normal normal-case">✏️ toque para simular</span>
+                </p>
+                <div id="modal-saldo-previsto" class="text-2xl font-black text-axon-aurora outline-none border-b border-transparent focus:border-axon-aurora transition-colors inline-block min-w-[100px]" contenteditable="true" inputmode="text" onfocus="this.innerText = this.innerText.replace(/[^\d,\.-]/g, '')" onblur="salvarSimulacao('previsto', this)">R$ 0,00</div>
             </div>
             
             <div class="mb-2 text-left border-t border-slate-800 pt-4 mt-4">
@@ -583,6 +589,11 @@
     let categoriaSelecionada = 'essencial';
     let filtroStatusReceb = 'todos', filtroStatusPag = 'todos';
 
+    // VARIÁVEIS DE SIMULAÇÃO
+    let simAtual = null;
+    let simSemGastos = null;
+    let simPrevisto = null;
+
     const LIMITE_GRATUITO = 10;
     let USUARIO_PRO = false; 
 
@@ -612,6 +623,16 @@
                 const banner = document.getElementById('banner-boas-vindas');
                 if(banner) banner.style.display = 'block';
             }
+
+            // Carrega as simulações salvas no celular
+            let lsAtual = localStorage.getItem('axon_sim_atual_' + USUARIO_LOGADO.id);
+            if(lsAtual) simAtual = parseFloat(lsAtual);
+            
+            let lsSemGas = localStorage.getItem('axon_sim_semgas_' + USUARIO_LOGADO.id);
+            if(lsSemGas) simSemGastos = parseFloat(lsSemGas);
+            
+            let lsPrev = localStorage.getItem('axon_sim_prev_' + USUARIO_LOGADO.id);
+            if(lsPrev) simPrevisto = parseFloat(lsPrev);
 
             carregarDados(); 
         }
@@ -670,9 +691,27 @@
         }
     }
 
+    // NOVA LÓGICA DE SIMULAÇÃO
+    function salvarSimulacao(campo, el) {
+        let texto = el.innerText.replace(/[^0-9,\.\-]/g, '');
+        let val = formatarParaSoma(texto);
+        
+        // Se o usuário apagar tudo ou digitar 0, reseta para a conta real
+        if (val === 0 || texto.trim() === '') {
+            if (campo === 'atual') { simAtual = null; localStorage.removeItem('axon_sim_atual_' + USUARIO_LOGADO.id); }
+            if (campo === 'sem_gastos') { simSemGastos = null; localStorage.removeItem('axon_sim_semgas_' + USUARIO_LOGADO.id); }
+            if (campo === 'previsto') { simPrevisto = null; localStorage.removeItem('axon_sim_prev_' + USUARIO_LOGADO.id); }
+        } else {
+            // Se for diferente de 0, salva como simulação ativa
+            if (campo === 'atual') { simAtual = val; localStorage.setItem('axon_sim_atual_' + USUARIO_LOGADO.id, val); }
+            if (campo === 'sem_gastos') { simSemGastos = val; localStorage.setItem('axon_sim_semgas_' + USUARIO_LOGADO.id, val); }
+            if (campo === 'previsto') { simPrevisto = val; localStorage.setItem('axon_sim_prev_' + USUARIO_LOGADO.id, val); }
+        }
+        renderizar(); // Força a tela a reescrever o R$ por cima e atualizar os cálculos
+    }
+
     function formatarDataHoje() { const h = new Date(); return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`; }
     
-    // NOVA FUNÇÃO: Pegar a data de ontem formatada para comparar
     function getOntemStr() {
         let h = new Date(); h.setDate(h.getDate() - 1);
         return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`;
@@ -707,6 +746,7 @@
     function abrirModalSaldo() { 
         document.getElementById('input-caixa-inicial').value = caixaInicial > 0 ? caixaInicial : ''; 
         document.getElementById('modal-saldo-analise').style.display = 'flex'; 
+        renderizar(); // Garante que o texto volte para R$ X se estiver quebrado
     }
     function fecharModalSaldo() { document.getElementById('modal-saldo-analise').style.display = 'none'; }
     function fecharModal() { document.getElementById('modal-financeiro').style.display = 'none'; itemSelecionado = null; }
@@ -792,7 +832,7 @@
         let sP_Rec = 0, sPa_Rec = 0, sA_Rec = 0;
         let sP_Pag = 0, sPa_Pag = 0, sA_Pag = 0;
 
-        // Variáveis para agrupar o histórico
+        // Variáveis para agrupar o histórico E guardar a lista HTML
         let histGastos = {};
         let histVendas = {};
         let htmlGastosHoje = '';
@@ -839,8 +879,9 @@
                     calcGastosHoje += tot;
                     htmlGastosHoje += `<div class="item-axon"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
                 } else {
-                    if(!histGastos[i.data]) histGastos[i.data] = 0;
-                    histGastos[i.data] += tot;
+                    if(!histGastos[i.data]) histGastos[i.data] = { total: 0, html: '' };
+                    histGastos[i.data].total += tot;
+                    histGastos[i.data].html += `<div class="flex justify-between items-center bg-black/40 p-2 rounded mb-1 mt-1"><div><div class="text-xs text-white">${i.nome}</div><div class="text-[9px] text-slate-500">R$ ${i.valor}</div></div><div class="btn-lixeira text-sm" onclick="event.stopPropagation(); deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
                 }
             }
             else if (i.tipo === 'venda_diaria') {
@@ -849,31 +890,63 @@
                     calcVendasHoje += tot;
                     htmlVendasHoje += `<div class="item-axon" style="border-left: 3px solid var(--axon-aurora); padding-left: 10px;"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
                 } else {
-                    if(!histVendas[i.data]) histVendas[i.data] = 0;
-                    histVendas[i.data] += tot;
+                    if(!histVendas[i.data]) histVendas[i.data] = { total: 0, html: '' };
+                    histVendas[i.data].total += tot;
+                    histVendas[i.data].html += `<div class="flex justify-between items-center bg-black/40 p-2 rounded mb-1 mt-1"><div><div class="text-xs text-white">${i.nome}</div><div class="text-[9px] text-slate-500">R$ ${i.valor}</div></div><div class="btn-lixeira text-sm" onclick="event.stopPropagation(); deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
                 }
             }
         });
 
-        // Monta o visual agrupado do Histórico de Gastos
+        // Monta o visual agrupado do Histórico de Gastos COM ACORDEÃO
         let htmlGastosPassado = '';
         Object.keys(histGastos).sort((a,b) => {
             let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1);
         }).forEach(data => {
             let label = (data === ontemStr) ? "TOTAL GASTO ONTEM" : `TOTAL GASTO DIA ${data}`;
-            htmlGastosPassado += `<div class="item-axon" style="background: rgba(168, 85, 247, 0.05); border-left: 3px solid #a855f7; padding-left: 10px;"><div><div class="font-bold text-[11px] text-[#a855f7] uppercase">${label}</div><div class="text-[9px] text-slate-500">Resumo diário | ${data}</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histGastos[data].toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="deletarDia('gasto_diario', '${data}')">🗑️</div></div></div>`;
+            let idUnico = 'hist-gasto-' + data.replace(/\//g, '-');
+            htmlGastosPassado += `
+            <div class="item-axon flex-col items-stretch" style="background: rgba(168, 85, 247, 0.05); border-left: 3px solid #a855f7; padding-left: 10px; cursor: pointer;" onclick="document.getElementById('${idUnico}').classList.toggle('hidden')">
+                <div class="flex justify-between items-center w-full">
+                    <div>
+                        <div class="font-bold text-[11px] text-[#a855f7] uppercase">${label}</div>
+                        <div class="text-[9px] text-slate-500 mt-1">EXIBIR DETALHES ▼</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="font-black text-white">R$ ${histGastos[data].total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+                        <div class="btn-lixeira" onclick="event.stopPropagation(); deletarDia('gasto_diario', '${data}')">🗑️</div>
+                    </div>
+                </div>
+                <div id="${idUnico}" class="hidden w-full mt-3 pt-3 border-t border-[#1e293b]/50">
+                    ${histGastos[data].html}
+                </div>
+            </div>`;
         });
 
-        // Monta o visual agrupado do Histórico de Vendas
+        // Monta o visual agrupado do Histórico de Vendas COM ACORDEÃO
         let htmlVendasPassado = '';
         Object.keys(histVendas).sort((a,b) => {
             let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1);
         }).forEach(data => {
             let label = (data === ontemStr) ? "TOTAL VENDAS ONTEM" : `TOTAL VENDAS DIA ${data}`;
-            htmlVendasPassado += `<div class="item-axon" style="background: rgba(45, 212, 191, 0.05); border-left: 3px solid var(--axon-aurora); padding-left: 10px;"><div><div class="font-bold text-[11px] text-[#2dd4bf] uppercase">${label}</div><div class="text-[9px] text-slate-500">Resumo diário | ${data}</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histVendas[data].toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="deletarDia('venda_diaria', '${data}')">🗑️</div></div></div>`;
+            let idUnico = 'hist-venda-' + data.replace(/\//g, '-');
+            htmlVendasPassado += `
+            <div class="item-axon flex-col items-stretch" style="background: rgba(45, 212, 191, 0.05); border-left: 3px solid var(--axon-aurora); padding-left: 10px; cursor: pointer;" onclick="document.getElementById('${idUnico}').classList.toggle('hidden')">
+                <div class="flex justify-between items-center w-full">
+                    <div>
+                        <div class="font-bold text-[11px] text-[#2dd4bf] uppercase">${label}</div>
+                        <div class="text-[9px] text-slate-500 mt-1">EXIBIR DETALHES ▼</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="font-black text-white">R$ ${histVendas[data].total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+                        <div class="btn-lixeira" onclick="event.stopPropagation(); deletarDia('venda_diaria', '${data}')">🗑️</div>
+                    </div>
+                </div>
+                <div id="${idUnico}" class="hidden w-full mt-3 pt-3 border-t border-[#1e293b]/50">
+                    ${histVendas[data].html}
+                </div>
+            </div>`;
         });
 
-        // Injeta os dados na tela (Hoje + Passado)
         if(lGas) lGas.innerHTML = htmlGastosHoje + htmlGastosPassado;
         if(lVen) lVen.innerHTML = htmlVendasHoje + htmlVendasPassado;
 
@@ -911,29 +984,41 @@
             if(barra) barra.style.width = `${pct}%`;
         }
 
-        const sAtual = (caixaInicial + calcRecPago + calcVendas) - (calcGastos + sPa_Pag + calcCofreInterno);
-        const sSemGastos = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcPagPend + sPa_Pag + calcCofreInterno);
-        const sPrevisto = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
+        // LÓGICA DE SIMULAÇÃO OU CÁLCULO REAL NO MODAL
+        const calcAtual = (caixaInicial + calcRecPago + calcVendas) - (calcGastos + sPa_Pag + calcCofreInterno);
+        const calcSemGastos = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcPagPend + sPa_Pag + calcCofreInterno);
+        const calcPrevisto = (caixaInicial + calcRecPago + calcVendas + calcRecPend) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
         
+        const sAtual = simAtual !== null ? simAtual : calcAtual;
+        const sSemGastos = simSemGastos !== null ? simSemGastos : calcSemGastos;
+        const sPrevisto = simPrevisto !== null ? simPrevisto : calcPrevisto;
+
+        // O Header nunca é simulado, é o dinheiro real.
         const eSalHead = document.getElementById('header-saldo-valor');
-        if (eSalHead) eSalHead.innerText = `R$ ${sAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        if (eSalHead) eSalHead.innerText = `R$ ${calcAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
 
         const elModalAtual = document.getElementById('modal-saldo-atual');
         if (elModalAtual) {
             elModalAtual.innerText = `R$ ${sAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             elModalAtual.style.color = sAtual >= 0 ? 'var(--axon-aurora)' : '#ef4444';
+            const lbl = document.getElementById('lbl-sim-atual');
+            if (lbl) lbl.innerText = simAtual !== null ? "✏️ simulado (0 reseta)" : "✏️ toque para simular";
         }
 
         const elModalSemGastos = document.getElementById('modal-saldo-sem-gastos');
         if (elModalSemGastos) {
             elModalSemGastos.innerText = `R$ ${sSemGastos.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             elModalSemGastos.style.color = sSemGastos >= 0 ? '#a855f7' : '#ef4444';
+            const lbl = document.getElementById('lbl-sim-semgas');
+            if (lbl) lbl.innerText = simSemGastos !== null ? "✏️ simulado (0 reseta)" : "✏️ toque para simular";
         }
 
         const elModalPrevisto = document.getElementById('modal-saldo-previsto');
         if (elModalPrevisto) {
             elModalPrevisto.innerText = `R$ ${sPrevisto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             elModalPrevisto.style.color = sPrevisto >= 0 ? 'var(--axon-aurora)' : '#ef4444';
+            const lbl = document.getElementById('lbl-sim-prev');
+            if (lbl) lbl.innerText = simPrevisto !== null ? "✏️ simulado (0 reseta)" : "✏️ toque para simular";
         }
 
         const lT = document.getElementById('lista-tarefas'), lTF = document.getElementById('lista-tarefas-feitas');
