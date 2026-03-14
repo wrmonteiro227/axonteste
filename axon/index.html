@@ -659,9 +659,22 @@
         else if (pagoAgora < total) { status = 'negociando'; restante = total - pagoAgora; }
 
         const ups = { status: status, valor_pago_parcial: pagoAgora, valor_restante: restante };
-        const { error } = await _supabase.from('financeiro').update(ups).eq('id', itemSelecionado.id);
+        await _supabase.from('financeiro').update(ups).eq('id', itemSelecionado.id);
         Object.assign(itemSelecionado, ups);
-        fecharModal(); salvarTudo();
+
+        // --- SINCRONISMO INVERSO (Pagamentos -> Estoque) ---
+        if (itemSelecionado.nome.startsWith('📦 Fornecedor: ')) {
+            let nomeEstoque = itemSelecionado.nome.replace('📦 Fornecedor: ', '');
+            let itemEstoque = db_estoque.find(x => x.nome === nomeEstoque);
+            if (itemEstoque) {
+                let novoStatusEstoque = (status === 'pago') ? 'concluido' : 'ativo';
+                await _supabase.from('estoque').update({ status: novoStatusEstoque }).eq('id', itemEstoque.id);
+                itemEstoque.status = novoStatusEstoque; // Atualiza a memória na hora
+            }
+        }
+
+        fecharModal(); 
+        salvarTudo();
     }
 
     async function registrarGasto() {
@@ -724,6 +737,7 @@
         if (item) {
             const novoStatus = item.status === 'concluido' ? 'ativo' : 'concluido';
             await _supabase.from('estoque').update({ status: novoStatus }).eq('id', id);
+            item.status = novoStatus; // Atualiza a memória instantaneamente
             
             if (fiado) {
                 let nomeBusca = '📦 Fornecedor: ' + nome;
@@ -737,6 +751,10 @@
                             valor_pago_parcial: totalVal, 
                             valor_restante: 0 
                         }).eq('id', divida.id);
+                        
+                        divida.status = 'pago';
+                        divida.valor_pago_parcial = totalVal;
+                        divida.valor_restante = 0;
                     }
                 } else {
                     let divida = db_financeiro.find(x => x.nome === nomeBusca && x.tipo === 'pagamento' && x.status === 'pago');
@@ -747,10 +765,14 @@
                             valor_pago_parcial: 0, 
                             valor_restante: totalVal 
                         }).eq('id', divida.id);
+
+                        divida.status = 'pendente';
+                        divida.valor_pago_parcial = 0;
+                        divida.valor_restante = totalVal;
                     }
                 }
             }
-            carregarDados();
+            renderizar(); // Força a tela a mudar na mesma hora sem depender da rede
         }
     }
 
