@@ -17,7 +17,7 @@
         :root {
             --axon-blue: #3b82f6;
             --axon-aurora: #2dd4bf;
-            --axon-gold: #f59e0b;
+            --axon-gold: #f59e0b; /* Nova cor para Estoque/Mercadoria */
             --preto-profundo: #020617; 
             --cinza-card: rgba(15, 23, 42, 0.85); 
             --cinza-hover: #1e293b;
@@ -77,24 +77,6 @@
             letter-spacing: 12px;
             text-transform: uppercase;
         }
-
-        /* SALDO PRIVADO NO HEADER */
-        .header-saldo-container {
-            position: absolute;
-            right: 20px;
-            text-align: right;
-            cursor: pointer;
-            z-index: 1001;
-        }
-        .header-saldo-label { color: #64748b; font-size: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
-        .header-saldo-valor { 
-            color: var(--axon-aurora); 
-            font-weight: 900; 
-            font-size: 0.9rem; 
-            filter: blur(8px); 
-            transition: 0.3s;
-        }
-        .btn-exibir-saldo { color: var(--axon-blue); font-size: 0.45rem; font-weight: bold; text-transform: uppercase; }
 
         .menu-abas {
             display: flex;
@@ -229,7 +211,7 @@
         .btn-categoria.active[data-cat="investimento"] { border-color: var(--axon-aurora); background: rgba(45,212,191,0.1); color: var(--axon-aurora); }
 
         /* --- MODAIS --- */
-        #modal-financeiro, #modal-saldo-analise, #modal-limite-pro {
+        #modal-financeiro, #modal-limite-pro {
             display: none;
             position: fixed;
             inset: 0;
@@ -254,25 +236,9 @@
             overflow-y: auto;
         }
 
-        /* CAIXA DE TUTORIAL TRANSPARENTE */
-        .tutorial-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 20px;
-            text-align: left;
-            font-size: 0.75rem;
-            color: #94a3b8;
-            line-height: 1.5;
-        }
-        .tutorial-box strong { color: #fff; }
-
         @media (max-width: 768px) { 
             .grid-resumo { grid-template-columns: 1fr; } 
             .valor-acumulado { font-size: 2.2rem; } 
-            .header-saldo-container { right: 15px; } 
-            .header-saldo-valor { font-size: 0.75rem; filter: blur(4px); } 
         }
 
         .chip-filtro { padding: 6px 12px; font-size: 0.6rem; border-radius: 20px; border: 1px solid #1e293b; background: rgba(0,0,0,0.3); color: #475569; cursor: pointer; transition: 0.3s; margin-right: 5px; white-space: nowrap; }
@@ -286,11 +252,6 @@
 
     <header class="barra-topo">
         <div class="logo-axon">AXON</div>
-        <div class="header-saldo-container" onclick="abrirModalSaldo()">
-            <div class="header-saldo-label">SALDO REAL</div>
-            <div id="header-saldo-valor" class="header-saldo-valor">R$ 0,00</div>
-            <div class="btn-exibir-saldo">Exibir</div>
-        </div>
     </header>
 
     <nav class="menu-abas">
@@ -309,17 +270,6 @@
     <main class="p-4 md:p-8 max-w-5xl mx-auto">
 
         <section id="aba-devedores" class="secao-conteudo ativa">
-            
-            <div id="banner-boas-vindas" class="card-axon mb-6" style="display: none; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(45, 212, 191, 0.05)); border-color: var(--axon-blue); padding: 16px;">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-white font-bold text-sm mb-2 flex items-center gap-2"><span>👋</span> Bem-vindo ao AXON!</h3>
-                        <p class="text-[10px] text-slate-400 leading-relaxed mb-1">Para sua gestão começar perfeita, clique em <strong>SALDO REAL</strong> lá no topo da tela.</p>
-                        <p class="text-[10px] text-slate-400 leading-relaxed">Configure seu <strong>Saldo Inicial</strong> com o dinheiro que você já tem hoje no banco ou na carteira!</p>
-                    </div>
-                    <button onclick="fecharBoasVindas()" class="text-slate-500 hover:text-white transition ml-4 text-lg">✖</button>
-                </div>
-            </div>
 
             <div class="grid-resumo">
                 <div class="resumo-card"><div class="resumo-label">A Receber</div><div id="total-receber" class="resumo-valor">R$ 0,00</div></div>
@@ -538,58 +488,6 @@
         </div>
     </div>
 
-    <div id="modal-saldo-analise">
-        <div class="modal-card">
-            <div class="logo-axon mb-8" style="font-size: 1rem;">ANÁLISE DE CAIXA</div>
-            
-            <div class="mb-6 text-left">
-                <p class="text-[10px] text-slate-500 uppercase font-black mb-1 flex items-center justify-between">
-                    Saldo Livre Hoje <span id="lbl-sim-atual" class="text-[8px] text-axon-blue font-normal normal-case">✏️ toque para simular</span>
-                </p>
-                <div id="modal-saldo-atual" class="text-3xl font-black outline-none border-b border-transparent focus:border-axon-blue transition-colors inline-block min-w-[100px]" contenteditable="true" inputmode="text" onfocus="this.innerText = this.innerText.replace(/[^\d,\.-]/g, '')" onblur="salvarSimulacao('atual', this)">R$ 0,00</div>
-            </div>
-
-            <div class="mb-6 text-left">
-                <p class="text-[10px] text-slate-500 uppercase font-black mb-1 flex items-center justify-between">
-                    Se não tivesse gastos diários <span id="lbl-sim-semgas" class="text-[8px] text-[#a855f7] font-normal normal-case">✏️ toque para simular</span>
-                </p>
-                <div id="modal-saldo-sem-gastos" class="text-2xl font-black outline-none border-b border-transparent focus:border-[#a855f7] transition-colors inline-block min-w-[100px]" contenteditable="true" inputmode="text" onfocus="this.innerText = this.innerText.replace(/[^\d,\.-]/g, '')" onblur="salvarSimulacao('sem_gastos', this)">R$ 0,00</div>
-            </div>
-
-            <div class="mb-8 p-4 bg-slate-900/50 rounded-xl border border-axon-blue/20 text-left">
-                <p class="text-[10px] text-slate-500 uppercase font-black mb-1 flex items-center justify-between">
-                    Se todos devedores pagarem <span id="lbl-sim-prev" class="text-[8px] text-axon-aurora font-normal normal-case">✏️ toque para simular</span>
-                </p>
-                <div id="modal-saldo-previsto" class="text-2xl font-black text-axon-aurora outline-none border-b border-transparent focus:border-axon-aurora transition-colors inline-block min-w-[100px]" contenteditable="true" inputmode="text" onfocus="this.innerText = this.innerText.replace(/[^\d,\.-]/g, '')" onblur="salvarSimulacao('previsto', this)">R$ 0,00</div>
-            </div>
-            
-            <div class="mb-2 text-left border-t border-slate-800 pt-4 mt-4">
-                <p class="text-[10px] text-slate-400 uppercase font-bold mb-2">Ajustar Saldo Inicial (Na Carteira/Banco)</p>
-                <div class="axon-input-group mb-0">
-                    <input type="text" id="input-caixa-inicial" class="axon-input" placeholder="R$ 0,00">
-                    <button class="btn-send" onclick="configurarCaixaInicial()">
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.42-6.446z"/></svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="tutorial-box">
-                <h4 style="color: var(--axon-blue); font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.7rem;">Como ler sua análise? 💡</h4>
-                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
-                    <li><strong>Saldo Livre Hoje:</strong> É o que você tem na mão agora. Entradas reais MENOS gastos diários e contas que já pagou. (O dinheiro pendente NÃO é subtraído daqui).</li>
-                    <li><strong>Se não tivesse gastos:</strong> É o seu Saldo Livre Hoje DEVOLVENDO os lanches e bobeiras que você já gastou.</li>
-                    <li><strong>Se todos pagarem:</strong> A projeção final ideal do seu caixa: Quita todas as dívidas pendentes, recebe dos devedores, e SOMA o lucro da sua Mercadoria Ativa do estoque!</li>
-                    <li style="margin-top: 5px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);">
-                        <strong style="color: var(--axon-aurora);">⚠️ Para que serve o Saldo Inicial?</strong><br>
-                        Se você pagar uma conta usando um dinheiro que <i>já estava</i> no seu banco (que você não registrou como venda ou recebimento no AXON), coloque esse valor no <b>Saldo Inicial</b> acima! Isso evita que o app ache que você tirou dinheiro do nada e deixe seu caixa negativo.
-                    </li>
-                </ul>
-            </div>
-
-            <button class="btn-send w-full h-12 mt-4" onclick="fecharModalSaldo()">FECHAR</button>
-        </div>
-    </div>
-
     <div id="modal-limite-pro">
         <div class="modal-card" style="border-color: var(--axon-aurora);">
             <div class="logo-axon mb-4" style="font-size: 1.5rem;">LIMITE ATINGIDO</div>
@@ -642,12 +540,6 @@
                 metaFinanceira = perfil.meta_financeira ? parseFloat(perfil.meta_financeira) : 0;
             }
 
-            const leuBoasVindas = localStorage.getItem('axon_boas_vindas_' + USUARIO_LOGADO.id);
-            if (!leuBoasVindas) {
-                const banner = document.getElementById('banner-boas-vindas');
-                if(banner) banner.style.display = 'block';
-            }
-
             let lsAtual = localStorage.getItem('axon_sim_atual_' + USUARIO_LOGADO.id);
             if(lsAtual) simAtual = parseFloat(lsAtual);
             
@@ -659,13 +551,6 @@
 
             carregarDados(); 
         }
-    }
-
-    function fecharBoasVindas() {
-        if (USUARIO_LOGADO) {
-            localStorage.setItem('axon_boas_vindas_' + USUARIO_LOGADO.id, 'true');
-        }
-        document.getElementById('banner-boas-vindas').style.display = 'none';
     }
 
     async function carregarDados() {
@@ -705,33 +590,6 @@
         }
     }
 
-    async function configurarCaixaInicial() {
-        const v = document.getElementById('input-caixa-inicial').value.trim();
-        if (v && USUARIO_LOGADO) {
-            caixaInicial = formatarParaSoma(v);
-            await _supabase.from('profiles').update({ caixa_inicial: caixaInicial }).eq('id', USUARIO_LOGADO.id);
-            document.getElementById('input-caixa-inicial').value = '';
-            renderizar();
-            fecharModalSaldo();
-        }
-    }
-
-    function salvarSimulacao(campo, el) {
-        let texto = el.innerText.replace(/[^0-9,\.\-]/g, '');
-        let val = formatarParaSoma(texto);
-        
-        if (val === 0 || texto.trim() === '') {
-            if (campo === 'atual') { simAtual = null; localStorage.removeItem('axon_sim_atual_' + USUARIO_LOGADO.id); }
-            if (campo === 'sem_gastos') { simSemGastos = null; localStorage.removeItem('axon_sim_semgas_' + USUARIO_LOGADO.id); }
-            if (campo === 'previsto') { simPrevisto = null; localStorage.removeItem('axon_sim_prev_' + USUARIO_LOGADO.id); }
-        } else {
-            if (campo === 'atual') { simAtual = val; localStorage.setItem('axon_sim_atual_' + USUARIO_LOGADO.id, val); }
-            if (campo === 'sem_gastos') { simSemGastos = val; localStorage.setItem('axon_sim_semgas_' + USUARIO_LOGADO.id, val); }
-            if (campo === 'previsto') { simPrevisto = val; localStorage.setItem('axon_sim_prev_' + USUARIO_LOGADO.id, val); }
-        }
-        renderizar(); 
-    }
-
     function formatarDataHoje() { const h = new Date(); return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`; }
     
     function getOntemStr() {
@@ -765,12 +623,6 @@
         document.getElementById(id).classList.add('ativa'); b.classList.add('ativa');
     }
 
-    function abrirModalSaldo() { 
-        document.getElementById('input-caixa-inicial').value = caixaInicial > 0 ? caixaInicial : ''; 
-        document.getElementById('modal-saldo-analise').style.display = 'flex'; 
-        renderizar(); 
-    }
-    function fecharModalSaldo() { document.getElementById('modal-saldo-analise').style.display = 'none'; }
     function fecharModal() { document.getElementById('modal-financeiro').style.display = 'none'; itemSelecionado = null; }
     function abrirModalPagamento(id) { itemSelecionado = db_financeiro.find(x => x.id === id); if(!itemSelecionado) return; document.getElementById('modal-info').innerText = `${itemSelecionado.nome} | Total: R$ ${itemSelecionado.valor}`; document.getElementById('modal-input-valor').value = itemSelecionado.valor_pago_parcial || itemSelecionado.valor; document.getElementById('modal-financeiro').style.display = 'flex'; }
     function filtrarLista(t) { if(t === 'recebimento') filtroReceb = document.getElementById('input-busca-receb').value.toLowerCase(); else filtroPag = document.getElementById('input-busca-pag').value.toLowerCase(); renderizar(); }
@@ -928,7 +780,6 @@
         let htmlVendasHoje = '';
 
         let calcEstCusto = 0, calcEstFat = 0, calcEstLucro = 0;
-        // VARIÁVEL NOVA DA MÁGICA DO ESTOQUE
         let somaFaturamentoEstoqueAtivo = 0; 
 
         db_estoque.forEach(i => {
@@ -936,7 +787,7 @@
                 calcEstCusto += formatarParaSoma(i.custo);
                 calcEstFat += formatarParaSoma(i.faturamento);
                 calcEstLucro += formatarParaSoma(i.lucro);
-                somaFaturamentoEstoqueAtivo += formatarParaSoma(i.faturamento); // Dinheiro que vai entrar!
+                somaFaturamentoEstoqueAtivo += formatarParaSoma(i.faturamento);
             }
 
             let badgeHtml = '';
@@ -1119,47 +970,6 @@
             document.getElementById('meta-porcentagem').innerText = `${Math.floor(pct)}%`;
             const barra = document.getElementById('barra-progresso');
             if(barra) barra.style.width = `${pct}%`;
-        }
-
-        // --- CÁLCULO DE CAIXA REAL VS. ESTOQUE ---
-        // Atual: Caixa + Entradas - (Gastos Diários + Contas Pagas + Dinheiro no Cofre Interno)
-        const calcAtual = (caixaInicial + calcRecPago + calcVendas) - (calcGastos + sPa_Pag + calcCofreInterno);
-        
-        // Sem Gastos: É o Saldo Atual, devolvendo os gastos (Como seria se não gastasse)
-        const calcSemGastos = calcAtual + calcGastos;
-        
-        // Se Todos Pagarem: Atual + Devedores - Dívidas Pendentes + FATURAMENTO DO ESTOQUE (que injeta o lucro automaticamente)
-        const calcPrevisto = (caixaInicial + calcRecPago + calcVendas + calcRecPend + somaFaturamentoEstoqueAtivo) - (calcGastos + calcPagPend + sPa_Pag + calcCofreInterno);
-        
-        const sAtual = simAtual !== null ? simAtual : calcAtual;
-        const sSemGastos = simSemGastos !== null ? simSemGastos : calcSemGastos;
-        const sPrevisto = simPrevisto !== null ? simPrevisto : calcPrevisto;
-
-        const eSalHead = document.getElementById('header-saldo-valor');
-        if (eSalHead) eSalHead.innerText = `R$ ${calcAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-
-        const elModalAtual = document.getElementById('modal-saldo-atual');
-        if (elModalAtual) {
-            elModalAtual.innerText = `R$ ${sAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            elModalAtual.style.color = sAtual >= 0 ? 'var(--axon-aurora)' : '#ef4444';
-            const lbl = document.getElementById('lbl-sim-atual');
-            if (lbl) lbl.innerText = simAtual !== null ? "✏️ simulado (0 reseta)" : "✏️ toque para simular";
-        }
-
-        const elModalSemGastos = document.getElementById('modal-saldo-sem-gastos');
-        if (elModalSemGastos) {
-            elModalSemGastos.innerText = `R$ ${sSemGastos.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            elModalSemGastos.style.color = sSemGastos >= 0 ? '#a855f7' : '#ef4444';
-            const lbl = document.getElementById('lbl-sim-semgas');
-            if (lbl) lbl.innerText = simSemGastos !== null ? "✏️ simulado (0 reseta)" : "✏️ toque para simular";
-        }
-
-        const elModalPrevisto = document.getElementById('modal-saldo-previsto');
-        if (elModalPrevisto) {
-            elModalPrevisto.innerText = `R$ ${sPrevisto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            elModalPrevisto.style.color = sPrevisto >= 0 ? 'var(--axon-aurora)' : '#ef4444';
-            const lbl = document.getElementById('lbl-sim-prev');
-            if (lbl) lbl.innerText = simPrevisto !== null ? "✏️ simulado (0 reseta)" : "✏️ toque para simular";
         }
 
         const lT = document.getElementById('lista-tarefas'), lTF = document.getElementById('lista-tarefas-feitas');
