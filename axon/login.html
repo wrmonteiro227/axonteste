@@ -12,6 +12,7 @@
         :root {
             --axon-blue: #3b82f6;
             --axon-aurora: #2dd4bf;
+            --axon-gold: #f59e0b; /* Nova cor para Estoque/Mercadoria */
             --preto-profundo: #020617; 
             --cinza-card: rgba(15, 23, 42, 0.7);
             --cinza-hover: #1e293b;
@@ -203,81 +204,67 @@
 
     <div class="tutorial-container">
         <div class="tut-header">
-            <h2>O Sistema Definitivo</h2>
-            <p>O <strong>AXON Galaxy Edition</strong> não é apenas um aplicativo de finanças; é um Centro de Comando Pessoal e Profissional. Ele foi desenhado para te dar o controle absoluto sobre o seu dinheiro que entra, o dinheiro que sai, o dinheiro que te devem, suas obrigações diárias e a construção do seu patrimônio. Tudo isso blindado com um sistema de privacidade visual.</p>
-            <p style="margin-top: 10px; color: var(--axon-blue); font-weight: bold;">Aqui está o tutorial detalhado de cada peça dessa máquina:</p>
+            <h2>O Sistema ERP Definitivo</h2>
+            <p>O <strong>AXON Galaxy Edition</strong> não é apenas um aplicativo de finanças; é um Centro de Comando de Negócios e Vida Pessoal. Ele foi desenhado para te dar o controle absoluto sobre o seu dinheiro, estoque, clientes e construção de patrimônio. Sem complicação, direto no seu bolso.</p>
+            <p style="margin-top: 10px; color: var(--axon-blue); font-weight: bold;">Descubra como o motor do AXON funciona:</p>
         </div>
 
-        <div class="tut-secao" style="border-color: #fff;">
-            <h3>👁️ O Topo: O Saldo Real Privado</h3>
-            <p>A primeira coisa que você vê é o seu Saldo no topo da tela. Ele nasce borrado (com blur).</p>
-            <p><span class="destaque">Para que serve:</span> Privacidade. Ninguém que estiver do seu lado ou olhando por cima do seu ombro vai ver quanto você tem de dinheiro.</p>
-            <p><span class="destaque">Como usar:</span> Ao clicar em "Exibir", o AXON abre o Modal de Análise de Caixa.</p>
-            <p>• <span class="destaque" style="color: var(--axon-aurora);">Saldo Livre Hoje:</span> É a matemática fria e real. Ele pega tudo o que você já recebeu + o que tá no Cofre + suas Vendas diárias, e subtrai tudo o que você já Gastou + as Contas que ainda tem que pagar. É o dinheiro que você realmente tem livre.</p>
-            <p>• <span class="destaque" style="color: var(--axon-blue);">Saldo Previsto (Se todos pagarem):</span> É o seu Saldo Hoje somado a todas as dívidas pendentes que as pessoas têm com você. Mostra o seu potencial de caixa futuro.</p>
-        </div>
-
-        <div class="tut-secao">
-            <h3>💰 1. Aba RECEBIMENTOS (A Arte da Cobrança)</h3>
+        <div class="tut-secao" style="border-color: var(--axon-blue);">
+            <h3>💰 1. Aba DEVEDORES (A Arte da Cobrança)</h3>
             <p><span class="destaque">Para que serve:</span> Controlar quem te deve dinheiro, fiados ou serviços prestados a prazo.</p>
-            <p><span class="destaque">Como funciona:</span> Você registra o nome do devedor, o valor e a data combinada.</p>
-            <p><span class="destaque">Diferencial:</span> Se a pessoa te pagar só uma parte (ex: devia R$ 100 e pagou R$ 50), você clica no status (Pendente), digita quanto ela pagou, e o AXON muda o status para "Negociando" (na cor Lilás), calculando sozinho quanto ainda falta receber.</p>
-            <p><span class="destaque">Busca Sniper:</span> Filtros rápidos. Quer ver só quem está Atrasado? Clica no chip. Quer procurar pelo nome do devedor? Digita na barra de busca e a lista é filtrada como um tiro de precisão.</p>
+            <p><span class="destaque">Como funciona:</span> Você registra o nome do devedor, o valor e a data. Se a pessoa te pagar só uma parte (ex: devia R$ 100 e pagou R$ 50), você digita o valor pago e o AXON muda o status para "Negociando" (na cor Lilás), calculando sozinho quanto ainda falta receber.</p>
+            <p><span class="destaque">Busca Sniper:</span> Quer ver só quem está Atrasado? Clica no chip. Quer achar um cliente específico? Digita na barra de busca e a lista é filtrada como um tiro de precisão.</p>
         </div>
 
         <div class="tut-secao" style="border-color: var(--axon-aurora);">
             <h3>🛒 2. Aba VENDAS (Fluxo de Caixa Rápido)</h3>
-            <p><span class="destaque">Para que serve:</span> Registrar o dinheiro limpo que entra na hora. Fez um serviço de balcão? Vendeu um produto no Pix ou dinheiro vivo? É aqui que você anota.</p>
-            <p><span class="destaque">Como funciona:</span> Coloca o que vendeu e o valor. Ele já carimba a data de hoje.</p>
-            <p><span class="destaque">Por que é vital:</span> Diferente de uma dívida (que alguém vai te pagar no futuro), a Venda é dinheiro imediato. O AXON pega esse valor e injeta na hora no seu Saldo Real para a matemática bater com o seu bolso.</p>
+            <p><span class="destaque">Para que serve:</span> Registrar o dinheiro limpo que entra na hora. Fez um serviço? Vendeu um produto no Pix ou dinheiro vivo? É aqui que você anota.</p>
+            <p><span class="destaque">O Truque Inteligente:</span> O AXON soma o "Total Vendido Hoje". Quando o dia vira, ele empacota as vendas antigas em uma caixinha chamada "TOTAL ONTEM". Para não poluir sua tela, o AXON esconde os detalhes de ontem, mas se você tocar na caixinha, ela se expande mostrando tudo o que você vendeu!</p>
         </div>
 
         <div class="tut-secao" style="border-color: #a855f7;">
-            <h3>💸 3. Aba GASTOS DIÁRIO (O Ralo do Dinheiro)</h3>
-            <p><span class="destaque">Para que serve:</span> Mapear os pequenos (e grandes) gastos do dia a dia para você ver para onde seu dinheiro está indo. O cafézinho, o Uber, o almoço, a compra no mercado.</p>
-            <p><span class="destaque">Como funciona:</span> Anotou o gasto, ele já desconta instantaneamente do seu Saldo Real.</p>
-            <p><span class="destaque">O Truque Inteligente:</span> O painel principal mostra o "Total Gasto Hoje". Quando der meia-noite, esse contador zera para você focar no controle do novo dia, mas os registros antigos continuam salvos na lista com a data correta para você não perder o histórico.</p>
+            <h3>💸 3. Aba GASTOS DIÁRIOS (O Ralo do Dinheiro)</h3>
+            <p><span class="destaque">Para que serve:</span> Mapear os pequenos gastos do dia a dia (café, Uber, almoço, fornecedor rápido).</p>
+            <p><span class="destaque">Organização Automática:</span> Assim como nas Vendas, o painel principal mostra o "Total Gasto Hoje". No dia seguinte, os gastos são arquivados em lotes diários. Precisa ver o que gastou semana passada? É só tocar na aba agrupada do dia e ver a lista completa.</p>
         </div>
 
         <div class="tut-secao" style="border-color: #ef4444;">
             <h3>🧾 4. Aba PAGAMENTOS (Suas Obrigações)</h3>
-            <p><span class="destaque">Para que serve:</span> Registrar as contas que você tem que pagar (luz, internet, fatura do cartão, fornecedor).</p>
-            <p><span class="destaque">Como funciona:</span> Você anota a descrição, o valor, a data de vencimento e escolhe a Categoria.</p>
-            <p><span class="destaque">Identificação Visual (Cores):</span></p>
+            <p><span class="destaque">Para que serve:</span> Registrar boletos, contas fixas e dívidas pendentes (como luz, internet e fornecedores).</p>
+            <p><span class="destaque">Identificação Visual:</span></p>
             <p><span class="cat-badge cat-esse">🏠 Essencial</span> Contas de sobrevivência (Borda Branca/Cinza).</p>
             <p><span class="cat-badge cat-lazer">🍿 Lazer</span> Seus luxos e diversões (Borda Lilás).</p>
             <p><span class="cat-badge cat-invest">📈 Investimento</span> Dinheiro usado para multiplicar dinheiro (Borda Verde Água).</p>
-            <p style="margin-top: 10px; font-size: 0.8rem; color: #ef4444;">* Se você não pagar até a data definida, o sistema automaticamente acusa "Atrasado" e mostra quantos dias de atraso você tem.</p>
+            <p style="margin-top: 10px; font-size: 0.8rem; color: #ef4444;">* Se você não pagar até a data definida, o sistema automaticamente acusa "Atrasado".</p>
+        </div>
+
+        <div class="tut-secao" style="border-color: var(--axon-gold);">
+            <h3>📦 5. Aba ESTOQUE (A Inteligência do Negócio)</h3>
+            <p><span class="destaque">Para que serve:</span> Projetar o lucro do seu negócio antes mesmo de terminar de vender a mercadoria.</p>
+            <p><span class="destaque">Como funciona:</span> Você anota o lote (ex: Camisas), o Custo e por quanto vai vender no total (Faturamento). O AXON calcula seu Lucro Líquido na hora.</p>
+            <p><span class="destaque">A Automação de Mestre:</span> Se você marcar que pegou a mercadoria <b>"Fiado"</b>, o AXON cria automaticamente uma dívida na aba de Pagamentos. Quando a mercadoria acabar e você for quitar a dívida, basta clicar em "FINALIZAR LOTE" no estoque, e o AXON dá baixa no lote E paga a dívida lá na aba de Pagamentos sozinho. É um mini-ERP trabalhando para você!</p>
         </div>
 
         <div class="tut-secao">
-            <h3>📝 5. Aba TAREFAS (Rotina e Produtividade)</h3>
+            <h3>📝 6. Aba TAREFAS (Rotina e Produtividade)</h3>
             <p><span class="destaque">Para que serve:</span> O seu "To-Do List" diário.</p>
-            <p><span class="destaque">Como funciona:</span> Você escreve o que tem que fazer. O sistema é inteligente: se você digitar "Ir para igreja sábado", ele entende a palavra "sábado", calcula que dia do mês vai cair e já marca a data correta para você.</p>
-            <p>Quando você clica no status, ele muda para "Feito" e joga a tarefa para a aba debaixo (Tarefas Concluídas), limpando a sua visão do que ainda precisa ser feito.</p>
+            <p><span class="destaque">Como funciona:</span> Você escreve o que tem que fazer. Se você digitar "Ir para igreja sábado", o AXON entende a palavra "sábado", calcula que dia do mês vai cair e já marca a data correta para você.</p>
         </div>
 
         <div class="tut-secao" style="border-color: var(--axon-aurora);">
-            <h3>🏦 6. Aba COFRE (Construção de Patrimônio)</h3>
-            <p><span class="destaque">Para que serve:</span> Guardar seu dinheiro intocável e acompanhar a sua evolução financeira.</p>
-            <p><span class="destaque">Como funciona:</span> Você clica em "Configurar Meta" e define quanto quer alcançar (ex: R$ 50.000). Depois, sempre que sobrar uma grana, você registra um "Novo Aporte".</p>
-            <p><span class="destaque">O Visual:</span> O AXON pega todo o dinheiro guardado e vai preenchendo uma Barra de Progresso Galaxy (com gradiente de azul e verde), calculando a porcentagem exata de quão perto você está de atingir a sua meta de vida.</p>
+            <h3>🏦 7. Aba COFRE (Construção de Patrimônio)</h3>
+            <p><span class="destaque">Para que serve:</span> Guardar dinheiro intocável e proteger contra os imprevistos da vida.</p>
+            <p><span class="destaque">Como funciona:</span> Defina sua Meta de vida (ex: R$ 50.000). Sempre que sobrar grana, registre um "Novo Aporte". A barra de progresso vai enchendo mostrando a porcentagem exata de quão perto você está do seu objetivo.</p>
         </div>
 
         <div class="tut-secao">
-            <h3>💡 7. Aba IDEIAS (Mural de Insights)</h3>
-            <p><span class="destaque">Para que serve:</span> Um bloco de notas blindado. Teve uma ideia de negócio no meio do banho? Pensou numa solução de código nova? Escutou uma batida pra uma música?</p>
-            <p><span class="destaque">Como funciona:</span> Você digita o texto e salva. O AXON cria um "Card" escuro, com fonte de código (Fira Code) e carimba a data daquele insight (Log) para você nunca mais esquecer as suas ideias brilhantes.</p>
-        </div>
-
-        <div class="tut-secao" style="border-color: #fff;">
-            <h3>📲 8. Aba AXON DOWNLOAD</h3>
-            <p><span class="destaque">Para que serve:</span> Instalar o sistema direto no seu celular.</p>
-            <p><span class="destaque">Como funciona:</span> Em vez de abrir o navegador toda hora, você clica neste botão. O AXON vai ser instalado na tela inicial do seu celular, com ícone próprio e funcionando em tela cheia como se fosse um aplicativo nativo baixado na loja da Apple ou do Google.</p>
+            <h3>💡 8. Aba IDEIAS & 📲 DOWNLOAD</h3>
+            <p><span class="destaque">Ideias:</span> Um bloco de notas blindado. Teve uma ideia de negócio ou de marketing? Anote. O AXON carimba a data e cria um log permanente para você não esquecer.</p>
+            <p><span class="destaque">Download:</span> Clique na última aba para instalar o AXON direto na tela inicial do seu celular, rodando liso e em tela cheia como um app premium.</p>
         </div>
 
         <div style="text-align: center; margin-top: 40px;">
-            <p style="color: var(--axon-aurora); font-weight: 900; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px;">O AXON é a sua mente organizada em formato de código</p>
+            <p style="color: var(--axon-aurora); font-weight: 900; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px;">O AXON é a sua mente organizada em código</p>
         </div>
     </div>
 
