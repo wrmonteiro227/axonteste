@@ -511,7 +511,7 @@
     </div>
 
     <div id="modal-resumo-chefe">
-        <div class="modal-card" style="border-color: var(--axon-gold); background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.95) 100%);">
+        <div class="modal-card" style="border-color: var(--axon-blue); background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.95) 100%);">
             <div class="logo-axon mb-2" style="font-size: 1.5rem;">RESUMO DO CHEFE</div>
             <p class="text-[10px] text-slate-400 mb-6 uppercase tracking-widest">Fechamento de Ontem</p>
             
@@ -532,7 +532,7 @@
             
             <p id="resumo-chefe-msg" class="text-xs text-slate-300 mb-6 italic">Excelente trabalho, chefe! 🚀</p>
             
-            <button class="btn-send w-full h-12 font-black" style="background: linear-gradient(45deg, var(--axon-gold), #b45309);" onclick="fecharResumoChefe()">COMEÇAR O DIA</button>
+            <button class="btn-send w-full h-12 font-black" style="background: linear-gradient(45deg, var(--axon-blue), var(--axon-aurora));" onclick="fecharResumoChefe()">COMEÇAR O DIA</button>
         </div>
     </div>
 
@@ -595,7 +595,7 @@
 
         db_financeiro = fin || []; db_cofre = cof || []; db_tarefas = tar || []; db_ideias = ide || []; db_estoque = est || [];
         salvarTudo();
-        verificarResumoChefe();
+        verificarResumoChefe(); // Executa a verificação do pop-up diário
     }
 
     function verificarLimite() {
@@ -631,6 +631,7 @@
         return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`;
     }
 
+    // NOVA FUNÇÃO: O GATILHO DE DOPAMINA DIÁRIO
     function verificarResumoChefe() {
         if (!USUARIO_LOGADO) return;
 
@@ -639,7 +640,7 @@
         const chaveLida = 'axon_resumo_lido_' + USUARIO_LOGADO.id;
         const ultimoResumoLido = localStorage.getItem(chaveLida);
 
-        if (ultimoResumoLido === hojeStr) return;
+        if (ultimoResumoLido === hojeStr) return; // Se já viu hoje, aborta para não encher o saco
 
         let totalVendasOntem = 0;
         let totalGastosOntem = 0;
@@ -652,6 +653,7 @@
             }
         });
 
+        // Só exibe a tela se o cara teve algum movimento (venda ou gasto) no dia anterior
         if (totalVendasOntem > 0 || totalGastosOntem > 0) {
             const lucro = totalVendasOntem - totalGastosOntem;
             
@@ -667,6 +669,7 @@
 
             document.getElementById('modal-resumo-chefe').style.display = 'flex';
         } else {
+            // Se não teve movimento ontem, finge que já leu para não checar na próxima recarga
             localStorage.setItem(chaveLida, hojeStr);
         }
     }
@@ -742,13 +745,14 @@
         await _supabase.from('financeiro').update(ups).eq('id', itemSelecionado.id);
         Object.assign(itemSelecionado, ups);
 
+        // --- SINCRONISMO INVERSO (Pagamentos -> Estoque) ---
         if (itemSelecionado.nome.startsWith('📦 Fornecedor: ')) {
             let nomeEstoque = itemSelecionado.nome.replace('📦 Fornecedor: ', '');
             let itemEstoque = db_estoque.find(x => x.nome === nomeEstoque);
             if (itemEstoque) {
                 let novoStatusEstoque = (status === 'pago') ? 'concluido' : 'ativo';
                 await _supabase.from('estoque').update({ status: novoStatusEstoque }).eq('id', itemEstoque.id);
-                itemEstoque.status = novoStatusEstoque;
+                itemEstoque.status = novoStatusEstoque; // Atualiza a memória na hora
             }
         }
 
