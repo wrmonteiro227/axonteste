@@ -304,9 +304,19 @@
         </section>
 
         <section id="aba-vendas" class="secao-conteudo">
-            <div class="resumo-card mb-4" style="border-color: var(--axon-aurora);">
-                <div class="resumo-label">Total Vendido Hoje</div>
-                <div id="total-vendas-hoje" class="resumo-valor" style="color: var(--axon-aurora); font-size: 1.5rem;">R$ 0,00</div>
+            <div class="grid-resumo mb-4">
+                <div class="resumo-card" style="border-color: var(--axon-aurora);">
+                    <div class="resumo-label">Vendido Hoje</div>
+                    <div id="total-vendas-hoje" class="resumo-valor" style="color: var(--axon-aurora); font-size: 1.5rem;">R$ 0,00</div>
+                </div>
+                <div class="resumo-card" style="border-color: var(--axon-aurora);">
+                    <div class="resumo-label">Essa Semana</div>
+                    <div id="total-vendas-semana" class="resumo-valor" style="color: var(--axon-aurora); font-size: 1.1rem;">R$ 0,00</div>
+                </div>
+                <div class="resumo-card" style="border-color: var(--axon-aurora);">
+                    <div class="resumo-label">Esse Mês</div>
+                    <div id="total-vendas-mes" class="resumo-valor" style="color: var(--axon-aurora); font-size: 1.1rem;">R$ 0,00</div>
+                </div>
             </div>
             <div class="card-axon">
                 <h2 class="titulo-lista"><span>●</span> Registrar Venda Hoje</h2>
@@ -320,9 +330,19 @@
         </section>
 
         <section id="aba-gastos" class="secao-conteudo">
-            <div class="resumo-card mb-4" style="border-color: #a855f7;">
-                <div class="resumo-label">Total Gasto Hoje</div>
-                <div id="total-gastos-hoje" class="resumo-valor" style="color: #a855f7; font-size: 1.5rem;">R$ 0,00</div>
+            <div class="grid-resumo mb-4">
+                <div class="resumo-card" style="border-color: #a855f7;">
+                    <div class="resumo-label">Gasto Hoje</div>
+                    <div id="total-gastos-hoje" class="resumo-valor" style="color: #a855f7; font-size: 1.5rem;">R$ 0,00</div>
+                </div>
+                <div class="resumo-card" style="border-color: #a855f7;">
+                    <div class="resumo-label">Essa Semana</div>
+                    <div id="total-gastos-semana" class="resumo-valor" style="color: #a855f7; font-size: 1.1rem;">R$ 0,00</div>
+                </div>
+                <div class="resumo-card" style="border-color: #a855f7;">
+                    <div class="resumo-label">Esse Mês</div>
+                    <div id="total-gastos-mes" class="resumo-valor" style="color: #a855f7; font-size: 1.1rem;">R$ 0,00</div>
+                </div>
             </div>
             <div class="card-axon">
                 <h2 class="titulo-lista"><span>●</span> Registrar Gasto Hoje</h2>
@@ -508,13 +528,8 @@
     let itemSelecionado = null;
     let filtroReceb = '', filtroPag = '';
     let metaFinanceira = 0;
-    let caixaInicial = 0;
     let categoriaSelecionada = 'essencial';
     let filtroStatusReceb = 'todos', filtroStatusPag = 'todos';
-
-    let simAtual = null;
-    let simSemGastos = null;
-    let simPrevisto = null;
 
     const LIMITE_GRATUITO = 10;
     let USUARIO_PRO = false; 
@@ -527,7 +542,7 @@
             
             const { data: perfil } = await _supabase
                 .from('profiles') 
-                .select('plano, caixa_inicial, meta_financeira')
+                .select('plano, meta_financeira')
                 .eq('id', USUARIO_LOGADO.id)
                 .single();
 
@@ -536,18 +551,8 @@
                     USUARIO_PRO = true;
                     console.log("Acesso PRO Liberado!");
                 }
-                caixaInicial = perfil.caixa_inicial ? parseFloat(perfil.caixa_inicial) : 0;
                 metaFinanceira = perfil.meta_financeira ? parseFloat(perfil.meta_financeira) : 0;
             }
-
-            let lsAtual = localStorage.getItem('axon_sim_atual_' + USUARIO_LOGADO.id);
-            if(lsAtual) simAtual = parseFloat(lsAtual);
-            
-            let lsSemGas = localStorage.getItem('axon_sim_semgas_' + USUARIO_LOGADO.id);
-            if(lsSemGas) simSemGastos = parseFloat(lsSemGas);
-            
-            let lsPrev = localStorage.getItem('axon_sim_prev_' + USUARIO_LOGADO.id);
-            if(lsPrev) simPrevisto = parseFloat(lsPrev);
 
             carregarDados(); 
         }
@@ -737,7 +742,7 @@
         if (item) {
             const novoStatus = item.status === 'concluido' ? 'ativo' : 'concluido';
             await _supabase.from('estoque').update({ status: novoStatus }).eq('id', id);
-            item.status = novoStatus; // Atualiza a memória instantaneamente
+            item.status = novoStatus; 
             
             if (fiado) {
                 let nomeBusca = '📦 Fornecedor: ' + nome;
@@ -772,7 +777,7 @@
                     }
                 }
             }
-            renderizar(); // Força a tela a mudar na mesma hora sem depender da rede
+            renderizar(); 
         }
     }
 
@@ -784,8 +789,26 @@
 
     function renderizar() {
         let calcRecPago = 0, calcCofre = 0, calcCofreInterno = 0, calcPagPend = 0, calcGastos = 0, calcGastosHoje = 0, calcRecPend = 0, calcVendas = 0, calcVendasHoje = 0;
+        
+        // VARIÁVEIS DE SEMANA E MÊS
+        let calcGastosSemana = 0, calcGastosMes = 0;
+        let calcVendasSemana = 0, calcVendasMes = 0;
+
         const calcHoje = formatarDataHoje();
         const ontemStr = getOntemStr();
+
+        // LÓGICA DE DETECÇÃO DA SEMANA E MÊS ATUAL
+        const dataAtual = new Date();
+        const mesAtual = dataAtual.getMonth();
+        const anoAtual = dataAtual.getFullYear();
+        
+        const inicioSemana = new Date(dataAtual);
+        inicioSemana.setDate(dataAtual.getDate() - dataAtual.getDay()); // Volta pro domingo
+        inicioSemana.setHours(0,0,0,0);
+        
+        const fimSemana = new Date(inicioSemana);
+        fimSemana.setDate(inicioSemana.getDate() + 6); // Vai pro Sábado
+        fimSemana.setHours(23,59,59,999);
 
         const lRec = document.getElementById('lista-status'); if(lRec) lRec.innerHTML = '';
         const lPag = document.getElementById('lista-status-pagamentos'); if(lPag) lPag.innerHTML = '';
@@ -853,6 +876,12 @@
         db_financeiro.forEach(i => {
             const tot = formatarParaSoma(i.valor); const pg = i.valor_pago_parcial || 0; const res = tot - pg;
             
+            // LÓGICA DE COMPARAÇÃO DE DATAS
+            const pts = i.data.split('/');
+            const dItem = new Date(pts[2], pts[1]-1, pts[0], 12, 0, 0);
+            const isMesmoMes = dItem.getMonth() === mesAtual && dItem.getFullYear() === anoAtual;
+            const isMesmaSemana = dItem >= inicioSemana && dItem <= fimSemana;
+
             if (i.tipo === 'recebimento') {
                 if (i.status === 'pago') { sPa_Rec += tot; calcRecPago += tot; }
                 else { sP_Rec += res; sPa_Rec += pg; calcRecPago += pg; calcRecPend += res; if (i.status === 'atrasado') sA_Rec += res; }
@@ -887,6 +916,10 @@
             }
             else if (i.tipo === 'gasto_diario') {
                 calcGastos += tot;
+                
+                if (isMesmaSemana) calcGastosSemana += tot;
+                if (isMesmoMes) calcGastosMes += tot;
+
                 if(i.data === calcHoje) {
                     calcGastosHoje += tot;
                     htmlGastosHoje += `<div class="item-axon"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
@@ -898,6 +931,10 @@
             }
             else if (i.tipo === 'venda_diaria') {
                 calcVendas += tot;
+
+                if (isMesmaSemana) calcVendasSemana += tot;
+                if (isMesmoMes) calcVendasMes += tot;
+
                 if (i.data === calcHoje) {
                     calcVendasHoje += tot;
                     htmlVendasHoje += `<div class="item-axon" style="border-left: 3px solid var(--axon-aurora); padding-left: 10px;"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
@@ -968,11 +1005,21 @@
         document.getElementById('total-pago-realizado').innerText = `R$ ${sPa_Pag.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
         document.getElementById('total-pagar-atraso').innerText = `R$ ${sA_Pag.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 
-        const elTotalGastos = document.getElementById('total-gastos-hoje');
-        if (elTotalGastos) elTotalGastos.innerText = `R$ ${calcGastosHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-
+        // INJETANDO VALORES NAS NOVAS CAIXAS DE VENDAS
         const elTotalVendas = document.getElementById('total-vendas-hoje');
         if (elTotalVendas) elTotalVendas.innerText = `R$ ${calcVendasHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        const elTotalVendasSemana = document.getElementById('total-vendas-semana');
+        if (elTotalVendasSemana) elTotalVendasSemana.innerText = `R$ ${calcVendasSemana.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        const elTotalVendasMes = document.getElementById('total-vendas-mes');
+        if (elTotalVendasMes) elTotalVendasMes.innerText = `R$ ${calcVendasMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+
+        // INJETANDO VALORES NAS NOVAS CAIXAS DE GASTOS
+        const elTotalGastos = document.getElementById('total-gastos-hoje');
+        if (elTotalGastos) elTotalGastos.innerText = `R$ ${calcGastosHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        const elTotalGastosSemana = document.getElementById('total-gastos-semana');
+        if (elTotalGastosSemana) elTotalGastosSemana.innerText = `R$ ${calcGastosSemana.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        const elTotalGastosMes = document.getElementById('total-gastos-mes');
+        if (elTotalGastosMes) elTotalGastosMes.innerText = `R$ ${calcGastosMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 
         const lC = document.getElementById('lista-cofre'); if(lC) lC.innerHTML = '';
         db_cofre.forEach(i => { 
@@ -1053,7 +1100,7 @@
     }
 
     async function registrarNoCofre() {
-        if (!verificarLimite()) return; // TRAVA RESPEITANDO O STATUS PRO NO COFRE
+        if (!verificarLimite()) return; 
         const v = document.getElementById('cofre-valor').value.trim();
         const externo = document.getElementById('cofre-externo').checked;
         if (v && USUARIO_LOGADO) {
