@@ -211,7 +211,7 @@
         .btn-categoria.active[data-cat="investimento"] { border-color: var(--axon-aurora); background: rgba(45,212,191,0.1); color: var(--axon-aurora); }
 
         /* --- MODAIS --- */
-        #modal-financeiro, #modal-limite-pro {
+        #modal-financeiro, #modal-limite-pro, #modal-resumo-chefe {
             display: none;
             position: fixed;
             inset: 0;
@@ -222,7 +222,9 @@
             justify-content: center;
             padding: 20px;
         }
+        #modal-resumo-chefe { z-index: 2500; }
         #modal-limite-pro { z-index: 3000; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); }
+        
         .modal-card {
             background: var(--cinza-card);
             border: 1px solid var(--axon-blue);
@@ -508,6 +510,32 @@
         </div>
     </div>
 
+    <div id="modal-resumo-chefe">
+        <div class="modal-card" style="border-color: var(--axon-gold); background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.95) 100%);">
+            <div class="logo-axon mb-2" style="font-size: 1.5rem;">RESUMO DO CHEFE</div>
+            <p class="text-[10px] text-slate-400 mb-6 uppercase tracking-widest">Fechamento de Ontem</p>
+            
+            <div class="flex justify-between items-center bg-black/50 p-3 rounded-lg border border-[#1e293b] mb-3">
+                <span class="text-xs text-slate-400 font-bold uppercase">Entradas (Vendas)</span>
+                <span id="resumo-chefe-vendas" class="font-black" style="color: var(--axon-aurora);">R$ 0,00</span>
+            </div>
+            
+            <div class="flex justify-between items-center bg-black/50 p-3 rounded-lg border border-[#1e293b] mb-3">
+                <span class="text-xs text-slate-400 font-bold uppercase">Saídas (Gastos)</span>
+                <span id="resumo-chefe-gastos" class="font-black" style="color: #ef4444;">R$ 0,00</span>
+            </div>
+            
+            <div class="mt-6 mb-6">
+                <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Lucro do Dia</p>
+                <div id="resumo-chefe-lucro" class="text-4xl font-black">R$ 0,00</div>
+            </div>
+            
+            <p id="resumo-chefe-msg" class="text-xs text-slate-300 mb-6 italic">Excelente trabalho, chefe! 🚀</p>
+            
+            <button class="btn-send w-full h-12 font-black" style="background: linear-gradient(45deg, var(--axon-gold), #b45309);" onclick="fecharResumoChefe()">COMEÇAR O DIA</button>
+        </div>
+    </div>
+
     <div id="modal-limite-pro">
         <div class="modal-card" style="border-color: var(--axon-aurora);">
             <div class="logo-axon mb-4" style="font-size: 1.5rem;">LIMITE ATINGIDO</div>
@@ -567,6 +595,7 @@
 
         db_financeiro = fin || []; db_cofre = cof || []; db_tarefas = tar || []; db_ideias = ide || []; db_estoque = est || [];
         salvarTudo();
+        verificarResumoChefe();
     }
 
     function verificarLimite() {
@@ -600,6 +629,52 @@
     function getOntemStr() {
         let h = new Date(); h.setDate(h.getDate() - 1);
         return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`;
+    }
+
+    function verificarResumoChefe() {
+        if (!USUARIO_LOGADO) return;
+
+        const hojeStr = formatarDataHoje();
+        const ontemStr = getOntemStr();
+        const chaveLida = 'axon_resumo_lido_' + USUARIO_LOGADO.id;
+        const ultimoResumoLido = localStorage.getItem(chaveLida);
+
+        if (ultimoResumoLido === hojeStr) return;
+
+        let totalVendasOntem = 0;
+        let totalGastosOntem = 0;
+
+        db_financeiro.forEach(i => {
+            if (i.data === ontemStr) {
+                const tot = formatarParaSoma(i.valor);
+                if (i.tipo === 'venda_diaria') totalVendasOntem += tot;
+                if (i.tipo === 'gasto_diario') totalGastosOntem += tot;
+            }
+        });
+
+        if (totalVendasOntem > 0 || totalGastosOntem > 0) {
+            const lucro = totalVendasOntem - totalGastosOntem;
+            
+            document.getElementById('resumo-chefe-vendas').innerText = `R$ ${totalVendasOntem.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+            document.getElementById('resumo-chefe-gastos').innerText = `R$ ${totalGastosOntem.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+            
+            const elLucro = document.getElementById('resumo-chefe-lucro');
+            elLucro.innerText = `R$ ${lucro.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+            elLucro.style.color = lucro >= 0 ? 'var(--axon-aurora)' : '#ef4444';
+
+            let msg = lucro >= 0 ? 'Excelente trabalho, chefe! Fechamos no verde. 🚀' : 'Atenção no caixa, chefe! Gastamos mais do que vendemos ontem. ⚠️';
+            document.getElementById('resumo-chefe-msg').innerText = msg;
+
+            document.getElementById('modal-resumo-chefe').style.display = 'flex';
+        } else {
+            localStorage.setItem(chaveLida, hojeStr);
+        }
+    }
+
+    function fecharResumoChefe() {
+        const hojeStr = formatarDataHoje();
+        localStorage.setItem('axon_resumo_lido_' + USUARIO_LOGADO.id, hojeStr);
+        document.getElementById('modal-resumo-chefe').style.display = 'none';
     }
 
     function tratarDataAxon(valor) {
@@ -667,14 +742,13 @@
         await _supabase.from('financeiro').update(ups).eq('id', itemSelecionado.id);
         Object.assign(itemSelecionado, ups);
 
-        // --- SINCRONISMO INVERSO (Pagamentos -> Estoque) ---
         if (itemSelecionado.nome.startsWith('📦 Fornecedor: ')) {
             let nomeEstoque = itemSelecionado.nome.replace('📦 Fornecedor: ', '');
             let itemEstoque = db_estoque.find(x => x.nome === nomeEstoque);
             if (itemEstoque) {
                 let novoStatusEstoque = (status === 'pago') ? 'concluido' : 'ativo';
                 await _supabase.from('estoque').update({ status: novoStatusEstoque }).eq('id', itemEstoque.id);
-                itemEstoque.status = novoStatusEstoque; // Atualiza a memória na hora
+                itemEstoque.status = novoStatusEstoque;
             }
         }
 
@@ -790,24 +864,22 @@
     function renderizar() {
         let calcRecPago = 0, calcCofre = 0, calcCofreInterno = 0, calcPagPend = 0, calcGastos = 0, calcGastosHoje = 0, calcRecPend = 0, calcVendas = 0, calcVendasHoje = 0;
         
-        // VARIÁVEIS DE SEMANA E MÊS
         let calcGastosSemana = 0, calcGastosMes = 0;
         let calcVendasSemana = 0, calcVendasMes = 0;
 
         const calcHoje = formatarDataHoje();
         const ontemStr = getOntemStr();
 
-        // LÓGICA DE DETECÇÃO DA SEMANA E MÊS ATUAL
         const dataAtual = new Date();
         const mesAtual = dataAtual.getMonth();
         const anoAtual = dataAtual.getFullYear();
         
         const inicioSemana = new Date(dataAtual);
-        inicioSemana.setDate(dataAtual.getDate() - dataAtual.getDay()); // Volta pro domingo
+        inicioSemana.setDate(dataAtual.getDate() - dataAtual.getDay());
         inicioSemana.setHours(0,0,0,0);
         
         const fimSemana = new Date(inicioSemana);
-        fimSemana.setDate(inicioSemana.getDate() + 6); // Vai pro Sábado
+        fimSemana.setDate(inicioSemana.getDate() + 6);
         fimSemana.setHours(23,59,59,999);
 
         const lRec = document.getElementById('lista-status'); if(lRec) lRec.innerHTML = '';
@@ -876,7 +948,6 @@
         db_financeiro.forEach(i => {
             const tot = formatarParaSoma(i.valor); const pg = i.valor_pago_parcial || 0; const res = tot - pg;
             
-            // LÓGICA DE COMPARAÇÃO DE DATAS
             const pts = i.data.split('/');
             const dItem = new Date(pts[2], pts[1]-1, pts[0], 12, 0, 0);
             const isMesmoMes = dItem.getMonth() === mesAtual && dItem.getFullYear() === anoAtual;
@@ -909,6 +980,7 @@
                     let catStyle = ""; let subTexto = `R$ ${i.valor} | Venc: ${i.data}`;
                     if(i.categoria === 'lazer') catStyle = "border-left: 3px solid #a855f7; padding-left: 10px;";
                     else if(i.categoria === 'investimento') catStyle = "border-left: 3px solid #2dd4bf; padding-left: 10px;";
+                    else if(i.categoria === 'essencial') catStyle = "border-left: 3px solid #ffffff; padding-left: 10px;";
                     subTexto = `${i.categoria ? i.categoria.toUpperCase() + ' | ' : ''}R$ ${i.valor} | Venc: ${i.data}`;
 
                     if(lPag) lPag.innerHTML += `<div class="item-axon" style="${catStyle}"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">${subTexto}</div>${pg > 0 && i.status !== 'pago' ? `<div class="text-[9px] mt-1"><span style="color:#2dd4bf">Rec: R$ ${pg.toLocaleString('pt-BR')}</span> | <span style="color:#64748b">Falta: R$ ${res.toLocaleString('pt-BR')}</span></div>` : ''}</div><div class="flex items-center gap-3"><span class="badge ${cls}" onclick="abrirModalPagamento(${i.id})">${txt}</span><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div></div>`;
@@ -1005,7 +1077,6 @@
         document.getElementById('total-pago-realizado').innerText = `R$ ${sPa_Pag.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
         document.getElementById('total-pagar-atraso').innerText = `R$ ${sA_Pag.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 
-        // INJETANDO VALORES NAS NOVAS CAIXAS DE VENDAS
         const elTotalVendas = document.getElementById('total-vendas-hoje');
         if (elTotalVendas) elTotalVendas.innerText = `R$ ${calcVendasHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
         const elTotalVendasSemana = document.getElementById('total-vendas-semana');
@@ -1013,7 +1084,6 @@
         const elTotalVendasMes = document.getElementById('total-vendas-mes');
         if (elTotalVendasMes) elTotalVendasMes.innerText = `R$ ${calcVendasMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 
-        // INJETANDO VALORES NAS NOVAS CAIXAS DE GASTOS
         const elTotalGastos = document.getElementById('total-gastos-hoje');
         if (elTotalGastos) elTotalGastos.innerText = `R$ ${calcGastosHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
         const elTotalGastosSemana = document.getElementById('total-gastos-semana');
