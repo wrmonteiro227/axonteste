@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AXON - Galaxy Edition | Login</title>
+    <title>AXON LITE | Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -12,7 +12,6 @@
         :root {
             --axon-blue: #3b82f6;
             --axon-aurora: #2dd4bf;
-            --axon-gold: #f59e0b;
             --preto-profundo: #020617; 
             --cinza-card: rgba(15, 23, 42, 0.7);
             --cinza-hover: #1e293b;
@@ -196,11 +195,6 @@
         }
 
         .tut-secao span.destaque { color: white; font-weight: bold; }
-        
-        .cat-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; background: rgba(0,0,0,0.5); border: 1px solid #333;}
-        .cat-lazer { border-color: #a855f7; color: #a855f7; }
-        .cat-invest { border-color: var(--axon-aurora); color: var(--axon-aurora); }
-        .cat-esse { border-color: #fff; color: #fff; }
 
         @media (max-width: 768px) {
             .tutorial-container { padding: 25px 20px; }
@@ -215,7 +209,7 @@
 
     <div class="login-box">
         <div class="logo-axon">AXON</div>
-        <div class="subtitle">Galaxy Edition</div>
+        <div class="subtitle">LITE EDITION</div>
 
         <input id="email" class="axon-input" placeholder="Seu Email de Acesso" type="email">
         <input id="senha" class="axon-input" type="password" placeholder="Sua Senha">
@@ -242,63 +236,28 @@
 
     <div class="tutorial-container">
         <div class="tut-header">
-            <h2>O Sistema ERP Definitivo</h2>
-            <p>O <strong>AXON Galaxy Edition</strong> não é apenas um aplicativo de finanças; é um Centro de Comando de Negócios e Vida Pessoal. Ele foi desenhado para te dar o controle absoluto sobre o seu dinheiro, estoque, clientes e construção de patrimônio. Sem complicação, direto no seu bolso.</p>
-            <p style="margin-top: 10px; color: var(--axon-blue); font-weight: bold;">Descubra como o motor do AXON funciona:</p>
+            <h2>Gestão Direto ao Ponto</h2>
+            <p>O <strong>AXON LITE</strong> é a versão ultra-rápida do seu Centro de Comando Financeiro. Feito para ser ágil e focado apenas no que importa: fluxo de caixa e gestão de devedores. Tudo limpo e sem distrações.</p>
+            <p style="margin-top: 10px; color: var(--axon-blue); font-weight: bold;">Veja o que o sistema LITE faz por você:</p>
         </div>
 
         <div class="tut-secao" style="border-color: var(--axon-blue);">
-            <h3>💰 1. Aba DEVEDORES (A Arte da Cobrança)</h3>
-            <p><span class="destaque">Para que serve:</span> Controlar quem te deve dinheiro, fiados ou serviços prestados a prazo.</p>
-            <p><span class="destaque">Como funciona:</span> Você registra o nome do devedor, o valor e a data. Se a pessoa te pagar só uma parte (ex: devia R$ 100 e pagou R$ 50), você digita o valor pago e o AXON muda o status para "Negociando" (na cor Lilás), calculando sozinho quanto ainda falta receber.</p>
-            <p><span class="destaque">Busca Sniper:</span> Quer ver só quem está Atrasado? Clica no chip. Quer achar um cliente específico? Digita na barra de busca e a lista é filtrada como um tiro de precisão.</p>
+            <h3>💰 1. DEVEDORES (A Arte da Cobrança)</h3>
+            <p><span class="destaque">Para que serve:</span> Controlar quem te deve dinheiro ou serviços prestados a prazo.</p>
+            <p><span class="destaque">Como funciona:</span> Registre o nome, valor e a data. Se a pessoa pagar apenas uma parte (ex: devia R$ 100 e pagou R$ 50), o AXON muda o status para "Negociando" e calcula automaticamente quanto falta receber.</p>
+            <p><span class="destaque">Busca Sniper:</span> Digite o nome ou filtre com um clique para ver na hora quem está pendente ou atrasado.</p>
         </div>
 
         <div class="tut-secao" style="border-color: var(--axon-aurora);">
-            <h3>🛒 2. Aba VENDAS (Fluxo de Caixa Rápido)</h3>
-            <p><span class="destaque">Para que serve:</span> Registrar o dinheiro limpo que entra na hora. Fez um serviço? Vendeu um produto no Pix ou dinheiro vivo? É aqui que você anota.</p>
-            <p><span class="destaque">O Truque Inteligente:</span> O AXON soma o "Total Vendido Hoje". Quando o dia vira, ele empacota as vendas antigas em uma caixinha chamada "TOTAL ONTEM". Para não poluir sua tela, o AXON esconde os detalhes de ontem, mas se você tocar na caixinha, ela se expande mostrando tudo o que você vendeu!</p>
+            <h3>🛒 2. VENDAS (Fluxo de Caixa)</h3>
+            <p><span class="destaque">Para que serve:</span> Anotar o dinheiro limpo que entra no dia. Fez um serviço ou vendeu no Pix? Registre aqui.</p>
+            <p><span class="destaque">O Truque Inteligente:</span> O AXON soma o "Total Vendido Hoje". Quando o dia vira, ele empacota as vendas antigas. Para não poluir sua tela, ele esconde os detalhes de ontem, mas basta tocar na data para ver o histórico completo das suas vendas passadas.</p>
         </div>
 
         <div class="tut-secao" style="border-color: #a855f7;">
-            <h3>💸 3. Aba GASTOS DIÁRIOS (O Ralo do Dinheiro)</h3>
-            <p><span class="destaque">Para que serve:</span> Mapear os pequenos gastos do dia a dia (café, Uber, almoço, fornecedor rápido).</p>
-            <p><span class="destaque">Organização Automática:</span> Assim como nas Vendas, o painel principal mostra o "Total Gasto Hoje". No dia seguinte, os gastos são arquivados em lotes diários. Precisa ver o que gastou semana passada? É só tocar na aba agrupada do dia e ver a lista completa.</p>
-        </div>
-
-        <div class="tut-secao" style="border-color: #ef4444;">
-            <h3>🧾 4. Aba PAGAMENTOS (Suas Obrigações)</h3>
-            <p><span class="destaque">Para que serve:</span> Registrar boletos, contas fixas e dívidas pendentes (como luz, internet e fornecedores).</p>
-            <p><span class="destaque">Identificação Visual:</span></p>
-            <p><span class="cat-badge cat-esse">🏠 Essencial</span> Contas de sobrevivência (Borda Branca/Cinza).</p>
-            <p><span class="cat-badge cat-lazer">🍿 Lazer</span> Seus luxos e diversões (Borda Lilás).</p>
-            <p><span class="cat-badge cat-invest">📈 Investimento</span> Dinheiro usado para multiplicar dinheiro (Borda Verde Água).</p>
-            <p style="margin-top: 10px; font-size: 0.8rem; color: #ef4444;">* Se você não pagar até a data definida, o sistema automaticamente acusa "Atrasado".</p>
-        </div>
-
-        <div class="tut-secao" style="border-color: var(--axon-gold);">
-            <h3>📦 5. Aba ESTOQUE (A Inteligência do Negócio)</h3>
-            <p><span class="destaque">Para que serve:</span> Projetar o lucro do seu negócio antes mesmo de terminar de vender a mercadoria.</p>
-            <p><span class="destaque">Como funciona:</span> Você anota o lote (ex: Camisas), o Custo e por quanto vai vender no total (Faturamento). O AXON calcula seu Lucro Líquido na hora.</p>
-            <p><span class="destaque">A Automação de Mestre:</span> Se você marcar que pegou a mercadoria <b>"Fiado"</b>, o AXON cria automaticamente uma dívida na aba de Pagamentos. Quando a mercadoria acabar e você for quitar a dívida, basta clicar em "FINALIZAR LOTE" no estoque, e o AXON dá baixa no lote E paga a dívida lá na aba de Pagamentos sozinho. É um mini-ERP trabalhando para você!</p>
-        </div>
-
-        <div class="tut-secao">
-            <h3>📝 6. Aba TAREFAS (Rotina e Produtividade)</h3>
-            <p><span class="destaque">Para que serve:</span> O seu "To-Do List" diário.</p>
-            <p><span class="destaque">Como funciona:</span> Você escreve o que tem que fazer. Se você digitar "Ir para igreja sábado", o AXON entende a palavra "sábado", calcula que dia do mês vai cair e já marca a data correta para você.</p>
-        </div>
-
-        <div class="tut-secao" style="border-color: var(--axon-aurora);">
-            <h3>🏦 7. Aba COFRE (Construção de Patrimônio)</h3>
-            <p><span class="destaque">Para que serve:</span> Guardar dinheiro intocável e proteger contra os imprevistos da vida.</p>
-            <p><span class="destaque">Como funciona:</span> Defina sua Meta de vida (ex: R$ 50.000). Sempre que sobrar grana, registre um "Novo Aporte". A barra de progresso vai enchendo mostrando a porcentagem exata de quão perto você está do seu objetivo.</p>
-        </div>
-
-        <div class="tut-secao">
-            <h3>💡 8. Aba IDEIAS & 📲 DOWNLOAD</h3>
-            <p><span class="destaque">Ideias:</span> Um bloco de notas blindado. Teve uma ideia de negócio ou de marketing? Anote. O AXON carimba a data e cria um log permanente para você não esquecer.</p>
-            <p><span class="destaque">Download:</span> Clique na última aba para instalar o AXON direto na tela inicial do seu celular, rodando liso e em tela cheia como um app premium.</p>
+            <h3>💸 3. GASTOS (O Ralo do Dinheiro)</h3>
+            <p><span class="destaque">Para que serve:</span> Mapear os pequenos gastos do dia a dia (café, Uber, almoço, pequenas compras de estoque).</p>
+            <p><span class="destaque">Organização Automática:</span> Mostra o que você gastou hoje, na semana e no mês. Todos os seus gastos são arquivados em lotes diários no histórico para que você saiba exatamente para onde seu dinheiro está indo.</p>
         </div>
 
         <div style="text-align: center; margin-top: 40px;">
@@ -359,10 +318,9 @@
             }else{
                 alert("Conta criada com sucesso! Agora faça o seu login.")
                 fecharModalRegistro();
-                // Preenche o campo de login com o e-mail recém-criado para facilitar
                 document.getElementById("email").value = email;
                 document.getElementById("senha").value = "";
-                document.getElementById("senha").focus(); // Joga o cursor pra senha
+                document.getElementById("senha").focus(); 
             }
         }
     </script>
