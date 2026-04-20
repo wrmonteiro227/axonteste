@@ -67,7 +67,6 @@
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
         }
 
-        /* LOGO AGORA TEM CURSOR POINTER PARA O TRIGGER ADMIN */
         .logo-axon {
             background: linear-gradient(to right, var(--axon-blue), var(--axon-aurora));
             -webkit-background-clip: text;
@@ -247,16 +246,16 @@
         </div>
 
         <div class="card-axon mt-6 mb-8 text-center" style="border-color: #334155; background: rgba(15, 23, 42, 0.4); padding: 15px;">
-            <p style="font-size: 0.6rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">Patrocínio</p>
+            <p style="font-size: 0.6rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">Destaques</p>
             
-            <a href="https://axonpro.online" target="_blank" style="display: block; text-decoration: none; overflow: hidden; border-radius: 8px;">
-                <img id="img-banner-parceiro" src="https://zqvfnykxwlcozvawqgrn.supabase.co/storage/v1/object/public/publicidade/banner_atual" onerror="this.src='https://via.placeholder.com/800x200/1e293b/cbd5e1?text=ESPAÇO+PARA+BANNER'" alt="Banner Parceiro" style="width: 100%; height: auto; min-height: 100px; object-fit: cover; display: block; border-radius: 8px; border: 1px solid #475569; transition: 0.3s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#475569'">
+            <a href="https://axonpro.online" target="_blank" style="display: block; text-decoration: none; overflow: hidden; border-radius: 8px; background: #1e293b; min-height: 100px;">
+                <img id="img-destaque" src="https://zqvfnykxwlcozvawqgrn.supabase.co/storage/v1/object/public/destaques/imagem_principal" alt="Espaço em Destaque" style="width: 100%; height: auto; min-height: 100px; object-fit: cover; display: block; border-radius: 8px; border: 1px solid #475569; transition: 0.3s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#475569'">
             </a>
 
-            <div id="painel-admin-banner" class="hidden mt-4 pt-4 border-t border-dashed border-[#334155]">
-                <p class="text-xs text-[var(--axon-aurora)] font-bold mb-2 uppercase tracking-widest">Painel Admin - Upload de Banner</p>
-                <input type="file" id="input-upload-banner" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="uploadNovaPublicidade(event)">
-                <button onclick="document.getElementById('input-upload-banner').click()" id="btn-txt-upload" class="w-full bg-[#1e293b] text-white font-bold py-3 rounded-lg border border-[#475569] hover:bg-[#334155] transition text-sm">
+            <div id="painel-admin-destaque" class="hidden mt-4 pt-4 border-t border-dashed border-[#334155]">
+                <p class="text-xs text-[var(--axon-aurora)] font-bold mb-2 uppercase tracking-widest">Painel Admin - Upload de Destaque</p>
+                <input type="file" id="input-upload-destaque" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="uploadNovoDestaque(event)">
+                <button onclick="document.getElementById('input-upload-destaque').click()" id="btn-txt-upload" class="w-full bg-[#1e293b] text-white font-bold py-3 rounded-lg border border-[#475569] hover:bg-[#334155] transition text-sm">
                     SELECIONAR NOVA IMAGEM DO CELULAR
                 </button>
             </div>
@@ -307,42 +306,36 @@
         contadorCliquesLogo++;
         clearTimeout(timerResetCliques);
         
-        // Se demorar mais de 1.5s entre os cliques, zera a contagem
         timerResetCliques = setTimeout(() => { contadorCliquesLogo = 0; }, 1500);
 
-        // Se clicou 3 vezes seguidas
         if (contadorCliquesLogo === 3) {
             document.getElementById('modal-admin-login').style.display = 'flex';
             document.getElementById('input-senha-admin').value = '';
             document.getElementById('input-senha-admin').focus();
-            contadorCliquesLogo = 0; // zera para não ficar abrindo em loop
+            contadorCliquesLogo = 0; 
         }
     }
 
     function authAdmin() {
         const senha = document.getElementById('input-senha-admin').value;
-        // Proteção contra Brute Force mitigada pela não exposição à internet e uso de senha local.
-        // SUGESTÃO VIBE CODER: Troque "wr777" por sua senha secreta real.
         if (senha === "wr777") {
             document.getElementById('modal-admin-login').style.display = 'none';
-            document.getElementById('painel-admin-banner').classList.remove('hidden');
+            document.getElementById('painel-admin-destaque').classList.remove('hidden');
         } else {
             alert("Acesso Negado.");
             document.getElementById('modal-admin-login').style.display = 'none';
         }
     }
 
-    async function uploadNovaPublicidade(event) {
+    async function uploadNovoDestaque(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        // VALIDAÇÃO DE SEGURANÇA: Bloqueia arquivos maiores que 2MB
         if (file.size > 2 * 1024 * 1024) {
             alert("A imagem é muito pesada. Envie um arquivo de até 2MB.");
             return;
         }
 
-        // VALIDAÇÃO DE SEGURANÇA: Bloqueia envio de arquivos maliciosos (.exe, .php)
         if (!file.type.startsWith('image/')) {
             alert("Apenas formatos de imagem são permitidos.");
             return;
@@ -352,31 +345,30 @@
         btnTxt.innerText = "ENVIANDO AO SERVIDOR...";
         btnTxt.disabled = true;
 
-        // Envia para o Supabase Storage. upsert: true garante que o banner antigo será apagado.
+        // URL ALTERADA PARA O NOVO BUCKET 'destaques'
         const { data, error } = await _supabase.storage
-            .from('publicidade')
-            .upload('banner_atual', file, {
+            .from('destaques')
+            .upload('imagem_principal', file, {
                 cacheControl: '0',
                 upsert: true
             });
 
         if (error) {
-            alert("Erro! Você criou o Bucket 'publicidade' e deixou como PÚBLICO no painel do Supabase?");
+            alert("Erro! Você criou o Bucket 'destaques' e deixou como PÚBLICO no painel do Supabase?");
             console.error(error);
             btnTxt.innerText = "SELECIONAR NOVA IMAGEM DO CELULAR";
             btnTxt.disabled = false;
             return;
         }
 
-        // Atualiza a imagem na tela instantaneamente usando um timestamp para enganar o cache do navegador
-        const imgBanner = document.getElementById('img-banner-parceiro');
-        imgBanner.src = `${SUPABASE_URL}/storage/v1/object/public/publicidade/banner_atual?t=${Date.now()}`;
+        const imgBanner = document.getElementById('img-destaque');
+        imgBanner.src = `${SUPABASE_URL}/storage/v1/object/public/destaques/imagem_principal?t=${Date.now()}`;
         
-        btnTxt.innerText = "BANNER ATUALIZADO COM SUCESSO!";
+        btnTxt.innerText = "IMAGEM ATUALIZADA COM SUCESSO!";
         setTimeout(() => {
             btnTxt.innerText = "SELECIONAR NOVA IMAGEM DO CELULAR";
             btnTxt.disabled = false;
-            document.getElementById('painel-admin-banner').classList.add('hidden'); // Oculta o painel após sucesso
+            document.getElementById('painel-admin-destaque').classList.add('hidden'); 
         }, 3000);
     }
 
