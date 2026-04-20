@@ -261,6 +261,25 @@
             </div>
         </div>
 
+        <div class="mt-10 mb-8 flex flex-col items-center text-center">
+            
+            <button id="btn-pwa-install" onclick="instalarApp()" class="flex items-center gap-4 px-6 py-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.1)] transition active:scale-95 w-full max-w-xs justify-center">
+                <svg width="28" height="28" fill="currentColor" class="text-[#2dd4bf]" viewBox="0 0 16 16">
+                  <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                  <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                </svg>
+                <div class="text-left">
+                    <div class="text-[9px] text-gray-400 uppercase tracking-widest font-semibold">Baixar Aplicativo</div>
+                    <div class="font-black text-white text-sm tracking-wide">DOWNLOAD AXON PRO</div>
+                </div>
+            </button>
+
+            <div class="mt-8 opacity-60">
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Desenvolvido por WSOLUCIONS</p>
+                <p class="text-[9px] text-[#475569] mt-1 font-bold">© 2026 AXON LITE</p>
+            </div>
+        </div>
+
     </main>
 
     <div id="modal-financeiro">
@@ -297,6 +316,35 @@
     let itemSelecionado = null;
     let filtroReceb = '';
     let filtroStatusReceb = 'todos';
+
+    // === LÓGICA DE INSTALAÇÃO PWA ATUALIZADA ===
+    let promptInstalacao;
+    const btnPwa = document.getElementById('btn-pwa-install');
+
+    // Escuta o evento nativo do Android/Chrome para permitir a instalação
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        promptInstalacao = e;
+    });
+
+    const isIos = () => {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(userAgent);
+    };
+
+    // Função inteligente do botão
+    function instalarApp() {
+        if (promptInstalacao) {
+            promptInstalacao.prompt();
+            promptInstalacao.userChoice.then((choiceResult) => {
+                promptInstalacao = null;
+            });
+        } else if (isIos()) {
+            alert("Para instalar o AXON PRO no seu iPhone:\n\n1. Toque no ícone de 'Compartilhar' (seta para cima).\n2. Selecione 'Adicionar à Tela de Início'.");
+        } else {
+            alert("Para instalar no seu celular:\n\nAbra as opções do seu navegador (os 3 pontinhos) e clique em 'Adicionar à tela inicial' ou 'Instalar Aplicativo'.");
+        }
+    }
 
     // === LÓGICA DE ADMINISTRADOR OCULTO ===
     let contadorCliquesLogo = 0;
@@ -345,7 +393,6 @@
         btnTxt.innerText = "ENVIANDO AO SERVIDOR...";
         btnTxt.disabled = true;
 
-        // URL ALTERADA PARA O NOVO BUCKET 'destaques'
         const { data, error } = await _supabase.storage
             .from('destaques')
             .upload('imagem_principal', file, {
