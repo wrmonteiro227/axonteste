@@ -267,7 +267,7 @@
         <div class="modal-card">
             <div class="logo-axon mb-4" style="font-size: 1rem;">ATUALIZAR VALOR</div>
             <p id="modal-info" class="text-xs text-gray-400 mb-6 uppercase tracking-widest"></p>
-            <input type="text" id="modal-input-valor" class="axon-input mb-6 text-center text-xl font-black" placeholder="Quanto pago?">
+            <input type="text" id="modal-input-valor" class="axon-input w-full box-border mb-6 text-center text-xl font-black" placeholder="Quanto pago?">
             <div class="flex gap-4">
                 <button class="axon-input bg-gray-900 border-none" onclick="fecharModal()">VOLTAR</button>
                 <button class="btn-send flex-grow font-black h-12" onclick="confirmarPagamentoParcial()">SALVAR</button>
@@ -279,7 +279,7 @@
         <div class="modal-card">
             <div class="logo-axon mb-4" style="font-size: 1rem;">ACESSO ADMIN</div>
             <p class="text-xs text-gray-400 mb-6 uppercase tracking-widest">Apenas Pessoal Autorizado</p>
-            <input type="password" id="input-senha-admin" class="axon-input mb-6 text-center text-xl font-black tracking-widest" placeholder="SENHA" autocomplete="off">
+            <input type="password" id="input-senha-admin" class="axon-input w-full box-border mb-6 text-center text-xl font-black tracking-widest" placeholder="SENHA" autocomplete="off">
             <div class="flex gap-4">
                 <button class="axon-input bg-gray-900 border-none" onclick="document.getElementById('modal-admin-login').style.display='none'">CANCELAR</button>
                 <button class="btn-send flex-grow font-black h-12" onclick="authAdmin()">ENTRAR</button>
