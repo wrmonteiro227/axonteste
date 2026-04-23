@@ -409,19 +409,11 @@
 
     // === CALCULO DE USUÁRIOS REGISTRADOS (Global via RPC Segura) ===
     async function calcularMetricasAdmin() {
-        // Conecta ao túnel seguro RPC criado no banco para contar contas na Auth
         const { data, error } = await _supabase.rpc('contar_usuarios');
-        
-        if (!error && data !== null) {
-            document.getElementById('metric-registrados').innerText = data;
-        } else {
-            // Se o usuário ainda não tiver rodado o código SQL no Supabase, mostramos esse aviso
-            document.getElementById('metric-registrados').innerText = "Rode o Script SQL!";
-            console.error("Erro RPC: Você esqueceu de rodar o comando SQL no painel do Supabase?", error);
-        }
+        if (!error && data !== null) { document.getElementById('metric-registrados').innerText = data; } 
+        else { document.getElementById('metric-registrados').innerText = "Rode o Script SQL!"; console.error("Erro RPC", error); }
     }
 
-    // Upload ajustado para o novo botão dentro do Painel Admin
     async function uploadNovoDestaque(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -445,44 +437,44 @@
         imgBanner.src = `${SUPABASE_URL}/storage/v1/object/public/destaques/imagem_principal?t=${Date.now()}`;
         
         btnTxt.innerText = "ATUALIZADO COM SUCESSO!";
-        setTimeout(() => {
-            btnTxt.innerText = "ATUALIZAR BANNER";
-            btnTxt.disabled = false;
-        }, 3000);
+        setTimeout(() => { btnTxt.innerText = "ATUALIZAR BANNER"; btnTxt.disabled = false; }, 3000);
+    }
+
+    // === NOVA FUNÇÃO DE GROWTH HACKING (COBRANÇA WHATSAPP) ===
+    function cobrarWhatsApp(id) {
+        const item = db_financeiro.find(x => x.id === id);
+        if(!item) return;
+        
+        const resFormato = (formatarParaSoma(item.valor) - (item.valor_pago_parcial || 0)).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        
+        // Frase formal, intuitiva e com marketing discreto consolidada
+        const mensagem = `Olá, ${item.nome}. Tudo bem?\n\nConsta em meu sistema que hoje, *${item.data}*, é a data que combinamos para o acerto do valor de *R$ ${resFormato}*.\n\nAguardo seu retorno para darmos baixa no sistema. Agradeço!\n\n--\n🧾 Gestão simplificada via: axonpro.online`;
+        
+        const link = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
+        window.open(link, '_blank');
     }
 
     // === REGRAS DE NEGÓCIO E SEGURANÇA ===
     const regexNomeComposto = /^[A-Za-zÀ-ÿ0-9\s]{2,50}$/; 
     const regexMilhar = /^\d{1,3}(\.\d{3})*(,\d{2})?$|^\d+(,\d{1,2})?$/;
 
-    function escapeHTML(str) {
-        return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
-    }
+    function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
 
     function toggleSecao(id, btnId) {
-        const sec = document.getElementById(id);
-        const btn = document.getElementById(btnId);
-        if (sec.classList.contains('hidden')) {
-            sec.classList.remove('hidden'); btn.innerText = 'OCULTAR'; btn.style.background = 'rgba(255,255,255,0.1)';
-        } else {
-            sec.classList.add('hidden'); btn.innerText = 'EXIBIR'; btn.style.background = 'transparent';
-        }
+        const sec = document.getElementById(id); const btn = document.getElementById(btnId);
+        if (sec.classList.contains('hidden')) { sec.classList.remove('hidden'); btn.innerText = 'OCULTAR'; btn.style.background = 'rgba(255,255,255,0.1)'; } 
+        else { sec.classList.add('hidden'); btn.innerText = 'EXIBIR'; btn.style.background = 'transparent'; }
     }
 
     async function verificarSessao() {
         const { data: { session } } = await _supabase.auth.getSession();
         if (!session) window.location.href = "login.html";
-        else { 
-            USUARIO_LOGADO = session.user; 
-            iniciarRadarOnline(); 
-            carregarDados(); 
-        }
+        else { USUARIO_LOGADO = session.user; iniciarRadarOnline(); carregarDados(); }
     }
 
     async function carregarDados() {
         const { data: fin } = await _supabase.from('financeiro').select('*');
-        db_financeiro = fin || [];
-        salvarTudo();
+        db_financeiro = fin || []; salvarTudo();
     }
 
     function formatarDataHoje() { const h = new Date(); return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`; }
@@ -494,10 +486,7 @@
         const hoje = new Date(), anoAtual = hoje.getFullYear();
         const diasSemana = { 'domingo': 0, 'segunda': 1, 'terça': 2, 'terca': 2, 'quarta': 3, 'quinta': 4, 'sexta': 5, 'sábado': 6, 'sabado': 6 };
         if (diasSemana[txt] !== undefined) {
-            let dataResult = new Date();
-            let diff = (diasSemana[txt] + 7 - hoje.getDay()) % 7;
-            if (diff === 0) diff = 7;
-            dataResult.setDate(hoje.getDate() + diff);
+            let dataResult = new Date(); let diff = (diasSemana[txt] + 7 - hoje.getDay()) % 7; if (diff === 0) diff = 7; dataResult.setDate(hoje.getDate() + diff);
             return `${String(dataResult.getDate()).padStart(2, '0')}/${String(dataResult.getMonth() + 1).padStart(2, '0')}/${dataResult.getFullYear()}`;
         }
         let apenasNumeros = txt.replace(/\D/g, "");
@@ -514,8 +503,7 @@
     function logout() { _supabase.auth.signOut(); window.location.href = "login.html"; }
 
     function setFiltroStatus(status, btn) {
-        const container = btn.parentElement;
-        container.querySelectorAll('.chip-filtro').forEach(b => b.classList.remove('ativo'));
+        const container = btn.parentElement; container.querySelectorAll('.chip-filtro').forEach(b => b.classList.remove('ativo'));
         btn.classList.add('ativo'); filtroStatusReceb = status; renderizar();
     }
 
@@ -531,17 +519,12 @@
 
     async function confirmarPagamentoParcial() {
         const vInput = document.getElementById('modal-input-valor').value.trim();
-        const total = formatarParaSoma(itemSelecionado.valor);
-        const pagoAgora = formatarParaSoma(vInput);
-        
+        const total = formatarParaSoma(itemSelecionado.valor); const pagoAgora = formatarParaSoma(vInput);
         let status = 'pago'; let restante = 0;
-        if (pagoAgora === 0) { status = 'pendente'; restante = total; }
-        else if (pagoAgora < total) { status = 'negociando'; restante = total - pagoAgora; }
-
+        if (pagoAgora === 0) { status = 'pendente'; restante = total; } else if (pagoAgora < total) { status = 'negociando'; restante = total - pagoAgora; }
         const ups = { status: status, valor_pago_parcial: pagoAgora, valor_restante: restante };
         await _supabase.from('financeiro').update(ups).eq('id', itemSelecionado.id);
-        Object.assign(itemSelecionado, ups);
-        fecharModal(); salvarTudo();
+        Object.assign(itemSelecionado, ups); fecharModal(); salvarTudo();
     }
 
     async function registrarDivida() {
@@ -550,8 +533,7 @@
         if (!regexMilhar.test(v)) { alert("Valor inválido! Formato exigido: 50.000 ou 50.000,00"); return; }
         if (n && v && USUARIO_LOGADO) { 
             const novo = { nome: escapeHTML(n), valor: escapeHTML(v), data: tratarDataAxon(d), status: 'pendente', tipo: 'recebimento', user_id: USUARIO_LOGADO.id, valor_pago_parcial: 0, valor_restante: formatarParaSoma(v) };
-            await _supabase.from('financeiro').insert([novo]);
-            ['reg-nome', 'reg-valor', 'reg-data'].forEach(i => document.getElementById(i).value = ''); carregarDados();
+            await _supabase.from('financeiro').insert([novo]); ['reg-nome', 'reg-valor', 'reg-data'].forEach(i => document.getElementById(i).value = ''); carregarDados();
         }
     }
 
@@ -561,8 +543,7 @@
         if (!regexMilhar.test(v)) { alert("Valor inválido! Formato exigido: 50.000 ou 50.000,00"); return; }
         if(n && v && USUARIO_LOGADO) {
             const nova = { nome: escapeHTML(n), valor: escapeHTML(v), data: formatarDataHoje(), status: 'pago', tipo: 'venda_diaria', user_id: USUARIO_LOGADO.id, valor_pago_parcial: 0, valor_restante: 0 };
-            await _supabase.from('financeiro').insert([nova]);
-            document.getElementById('venda-nome').value=''; document.getElementById('venda-valor').value=''; carregarDados();
+            await _supabase.from('financeiro').insert([nova]); document.getElementById('venda-nome').value=''; document.getElementById('venda-valor').value=''; carregarDados();
         }
     }
 
@@ -572,8 +553,7 @@
         if (!regexMilhar.test(v)) { alert("Valor inválido! Formato exigido: 50.000 ou 50.000,00"); return; }
         if(n && v && USUARIO_LOGADO) {
             const novo = { nome: escapeHTML(n), valor: escapeHTML(v), data: formatarDataHoje(), status: 'gasto', tipo: 'gasto_diario', user_id: USUARIO_LOGADO.id, valor_pago_parcial: 0, valor_restante: formatarParaSoma(v) };
-            await _supabase.from('financeiro').insert([novo]);
-            document.getElementById('gasto-nome').value=''; document.getElementById('gasto-valor').value=''; carregarDados();
+            await _supabase.from('financeiro').insert([novo]); document.getElementById('gasto-nome').value=''; document.getElementById('gasto-valor').value=''; carregarDados();
         }
     }
 
@@ -611,7 +591,30 @@
                     if(i.status === 'pago') { cls = 'badge-pago'; txt = 'Pago'; }
                     else if(i.status === 'atrasado') { cls = 'badge-atrasado'; txt = i.motivo_atraso; }
                     else if(i.status === 'negociando') { cls = 'badge-negociando'; txt = 'Negociando'; }
-                    if(lRec) lRec.innerHTML += `<div class="item-axon"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | Venc: ${i.data}</div>${pg > 0 && i.status !== 'pago' ? `<div class="text-[9px] mt-1"><span style="color:#2dd4bf">Rec: R$ ${pg.toLocaleString('pt-BR')}</span> | <span style="color:#64748b">Falta: R$ ${res.toLocaleString('pt-BR')}</span></div>` : ''}</div><div class="flex items-center gap-3"><span class="badge ${cls}" onclick="abrirModalPagamento(${i.id})">${txt}</span><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div></div>`;
+                    
+                    if(lRec) {
+                        lRec.innerHTML += `
+                        <div class="item-axon">
+                            <div>
+                                <div class="font-bold text-white">${i.nome}</div>
+                                <div class="text-[10px] text-slate-400">R$ ${i.valor} | Venc: ${i.data}</div>
+                                ${pg > 0 && i.status !== 'pago' ? `<div class="text-[9px] mt-1"><span style="color:#2dd4bf">Rec: R$ ${pg.toLocaleString('pt-BR')}</span> | <span style="color:#64748b">Falta: R$ ${res.toLocaleString('pt-BR')}</span></div>` : ''}
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="badge ${cls}" onclick="abrirModalPagamento(${i.id})">${txt}</span>
+                                
+                                ${i.status !== 'pago' ? `
+                                <div class="text-[var(--axon-aurora)] transition duration-300 cursor-pointer hover:scale-110" onclick="cobrarWhatsApp(${i.id})" title="Cobrar pelo WhatsApp">
+                                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                      <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+                                    </svg>
+                                </div>
+                                ` : ''}
+
+                                <div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div>
+                            </div>
+                        </div>`;
+                    }
                 }
             }
             else if (i.tipo === 'gasto_diario') {
