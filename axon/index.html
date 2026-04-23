@@ -121,14 +121,20 @@
         .chip-filtro.ativo { border-color: var(--axon-blue); color: var(--axon-blue); background: rgba(59, 130, 246, 0.1); }
 
         /* --- MODAIS --- */
-        #modal-financeiro, #modal-admin-login {
+        #modal-financeiro, #modal-admin-login, #modal-admin-master {
             display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
             align-items: center; justify-content: center; padding: 20px;
         }
+        
+        #modal-admin-master { display: none; flex-direction: column; justify-content: flex-start; overflow-y: auto; z-index: 3000; }
+
         .modal-card {
             background: var(--cinza-card); border: 1px solid var(--axon-blue); border-radius: 24px; padding: 30px; width: 100%;
             max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
         }
+
+        .pulse-online { animation: pulseGreen 2s infinite; }
+        @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(45, 212, 191, 0); } 100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0); } }
 
         @media (max-width: 768px) { .grid-resumo { grid-template-columns: 1fr; } }
     </style>
@@ -251,18 +257,9 @@
             <a href="https://axonpro.online" target="_blank" style="display: block; text-decoration: none; overflow: hidden; border-radius: 8px; background: #1e293b; min-height: 100px;">
                 <img id="img-destaque" src="https://zqvfnykxwlcozvawqgrn.supabase.co/storage/v1/object/public/destaques/imagem_principal" alt="Espaço em Destaque" style="width: 100%; height: auto; min-height: 100px; object-fit: cover; display: block; border-radius: 8px; border: 1px solid #475569; transition: 0.3s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#475569'">
             </a>
-
-            <div id="painel-admin-destaque" class="hidden mt-4 pt-4 border-t border-dashed border-[#334155]">
-                <p class="text-xs text-[var(--axon-aurora)] font-bold mb-2 uppercase tracking-widest">Painel Admin - Upload de Destaque</p>
-                <input type="file" id="input-upload-destaque" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="uploadNovoDestaque(event)">
-                <button onclick="document.getElementById('input-upload-destaque').click()" id="btn-txt-upload" class="w-full bg-[#1e293b] text-white font-bold py-3 rounded-lg border border-[#475569] hover:bg-[#334155] transition text-sm">
-                    SELECIONAR NOVA IMAGEM DO CELULAR
-                </button>
-            </div>
         </div>
 
         <div class="mt-10 mb-8 flex flex-col items-center text-center">
-            
             <button id="btn-pwa-install" onclick="instalarApp()" class="flex items-center gap-4 px-6 py-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.1)] transition active:scale-95 w-full max-w-xs justify-center">
                 <svg width="28" height="28" fill="currentColor" class="text-[#2dd4bf]" viewBox="0 0 16 16">
                   <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
@@ -273,9 +270,8 @@
                     <div class="font-black text-white text-sm tracking-wide">DOWNLOAD AXON PRO</div>
                 </div>
             </button>
-
             <div class="mt-8 opacity-60">
-                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Desenvolvido por WSOLUTIONS</p>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Desenvolvido por WSOLUCIONS</p>
                 <p class="text-[9px] text-[#475569] mt-1 font-bold">© 2026 AXON LITE</p>
             </div>
         </div>
@@ -306,6 +302,44 @@
         </div>
     </div>
 
+    <div id="modal-admin-master">
+        <div class="w-full max-w-3xl mx-auto pt-8 pb-12 px-4">
+            <div class="flex justify-between items-center mb-8 border-b border-[#3b82f6]/30 pb-4">
+                <div>
+                    <h1 class="logo-axon" style="font-size: 1.5rem;">CONTROL PANEL</h1>
+                    <p class="text-xs text-gray-400 uppercase tracking-widest mt-1">Visão Geral da Plataforma</p>
+                </div>
+                <button onclick="document.getElementById('modal-admin-master').style.display='none'" class="text-xs font-bold bg-[#1e293b] text-white border border-[#475569] px-4 py-2 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-500 transition">
+                    FECHAR PAINEL
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="card-axon text-center flex flex-col justify-center border-t-2 border-t-[#3b82f6]">
+                    <div class="text-[9px] text-gray-400 uppercase tracking-widest mb-2 font-bold">Contas Ativas (Globais)</div>
+                    <div id="metric-registrados" class="text-4xl font-black text-white">Carregando...</div>
+                </div>
+                <div class="card-axon text-center flex flex-col justify-center border-t-2 border-t-[var(--axon-aurora)] relative overflow-hidden">
+                    <div class="absolute top-3 right-3 w-3 h-3 bg-[var(--axon-aurora)] rounded-full pulse-online"></div>
+                    <div class="text-[9px] text-gray-400 uppercase tracking-widest mb-2 font-bold">Online Agora</div>
+                    <div id="metric-online" class="text-4xl font-black text-[var(--axon-aurora)]">1</div>
+                </div>
+            </div>
+
+            <div class="card-axon border-t border-[#334155] bg-black/40">
+                <h3 class="text-[#2dd4bf] font-bold text-sm mb-2 tracking-widest uppercase flex items-center gap-2">
+                    <span>●</span> Gerenciar Patrocínio
+                </h3>
+                <p class="text-xs text-gray-500 mb-6">Altere a imagem de destaque que aparece no rodapé do aplicativo de todos os usuários em tempo real.</p>
+                
+                <input type="file" id="input-upload-destaque-admin" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="uploadNovoDestaque(event)">
+                <button onclick="document.getElementById('input-upload-destaque-admin').click()" id="btn-txt-upload-admin" class="w-full bg-[#3b82f6]/10 text-[#3b82f6] font-black py-4 rounded-xl border border-[#3b82f6]/50 hover:bg-[#3b82f6]/20 transition text-xs tracking-widest">
+                    ATUALIZAR BANNER
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
     const SUPABASE_URL = 'https://zqvfnykxwlcozvawqgrn.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdmZueWt4d2xjb3p2YXdxZ3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3NDkzNDQsImV4cCI6MjA4NTMyNTM0NH0.CevpF9vP4748mb2vFNsOp5Kq6u7Nfp_100bJcW7ogUQ';
@@ -316,46 +350,27 @@
     let itemSelecionado = null;
     let filtroReceb = '';
     let filtroStatusReceb = 'todos';
+    let canalOnline = null; 
 
-    // === LÓGICA DE INSTALAÇÃO PWA ATUALIZADA ===
+    // === LÓGICA DE INSTALAÇÃO PWA ===
     let promptInstalacao;
     const btnPwa = document.getElementById('btn-pwa-install');
-
-    // Escuta o evento nativo do Android/Chrome para permitir a instalação
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        promptInstalacao = e;
-    });
-
-    const isIos = () => {
-        const userAgent = window.navigator.userAgent.toLowerCase();
-        return /iphone|ipad|ipod/.test(userAgent);
-    };
-
-    // Função inteligente do botão
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); promptInstalacao = e; });
+    const isIos = () => { return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()); };
     function instalarApp() {
-        if (promptInstalacao) {
-            promptInstalacao.prompt();
-            promptInstalacao.userChoice.then((choiceResult) => {
-                promptInstalacao = null;
-            });
-        } else if (isIos()) {
-            alert("Para instalar o AXON PRO no seu iPhone:\n\n1. Toque no ícone de 'Compartilhar' (seta para cima).\n2. Selecione 'Adicionar à Tela de Início'.");
-        } else {
-            alert("Para instalar no seu celular:\n\nAbra as opções do seu navegador (os 3 pontinhos) e clique em 'Adicionar à tela inicial' ou 'Instalar Aplicativo'.");
-        }
+        if (promptInstalacao) { promptInstalacao.prompt(); promptInstalacao.userChoice.then(() => { promptInstalacao = null; }); } 
+        else if (isIos()) { alert("Para instalar o AXON PRO no seu iPhone:\n\n1. Toque no ícone de 'Compartilhar' (seta para cima).\n2. Selecione 'Adicionar à Tela de Início'."); } 
+        else { alert("Para instalar no seu celular:\n\nAbra as opções do seu navegador (os 3 pontinhos) e clique em 'Adicionar à tela inicial' ou 'Instalar Aplicativo'."); }
     }
 
-    // === LÓGICA DE ADMINISTRADOR OCULTO ===
+    // === LÓGICA DE ADMINISTRADOR MASTER ===
     let contadorCliquesLogo = 0;
     let timerResetCliques;
 
     function verificarCliquesAdmin() {
         contadorCliquesLogo++;
         clearTimeout(timerResetCliques);
-        
         timerResetCliques = setTimeout(() => { contadorCliquesLogo = 0; }, 1500);
-
         if (contadorCliquesLogo === 3) {
             document.getElementById('modal-admin-login').style.display = 'flex';
             document.getElementById('input-senha-admin').value = '';
@@ -364,46 +379,64 @@
         }
     }
 
-    function authAdmin() {
+    async function authAdmin() {
         const senha = document.getElementById('input-senha-admin').value;
         if (senha === "wr777") {
             document.getElementById('modal-admin-login').style.display = 'none';
-            document.getElementById('painel-admin-destaque').classList.remove('hidden');
+            document.getElementById('modal-admin-master').style.display = 'flex';
+            await calcularMetricasAdmin();
         } else {
             alert("Acesso Negado.");
             document.getElementById('modal-admin-login').style.display = 'none';
         }
     }
 
+    // === SISTEMA DE RADAR DE PRESENÇA (ONLINE AGORA) ===
+    async function iniciarRadarOnline() {
+        if (!USUARIO_LOGADO) return;
+        canalOnline = _supabase.channel('sala-global-axon');
+        
+        canalOnline.on('presence', { event: 'sync' }, () => {
+            const estado = canalOnline.presenceState();
+            let totalOnline = Object.keys(estado).length;
+            document.getElementById('metric-online').innerText = totalOnline > 0 ? totalOnline : 1;
+        }).subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await canalOnline.track({ user: USUARIO_LOGADO.id, online_at: new Date().toISOString() });
+            }
+        });
+    }
+
+    // === CALCULO DE USUÁRIOS REGISTRADOS (Global via RPC Segura) ===
+    async function calcularMetricasAdmin() {
+        // Conecta ao túnel seguro RPC criado no banco para contar contas na Auth
+        const { data, error } = await _supabase.rpc('contar_usuarios');
+        
+        if (!error && data !== null) {
+            document.getElementById('metric-registrados').innerText = data;
+        } else {
+            // Se o usuário ainda não tiver rodado o código SQL no Supabase, mostramos esse aviso
+            document.getElementById('metric-registrados').innerText = "Rode o Script SQL!";
+            console.error("Erro RPC: Você esqueceu de rodar o comando SQL no painel do Supabase?", error);
+        }
+    }
+
+    // Upload ajustado para o novo botão dentro do Painel Admin
     async function uploadNovoDestaque(event) {
         const file = event.target.files[0];
         if (!file) return;
+        if (file.size > 2 * 1024 * 1024) { alert("A imagem é muito pesada. Envie um arquivo de até 2MB."); return; }
+        if (!file.type.startsWith('image/')) { alert("Apenas formatos de imagem são permitidos."); return; }
 
-        if (file.size > 2 * 1024 * 1024) {
-            alert("A imagem é muito pesada. Envie um arquivo de até 2MB.");
-            return;
-        }
-
-        if (!file.type.startsWith('image/')) {
-            alert("Apenas formatos de imagem são permitidos.");
-            return;
-        }
-
-        const btnTxt = document.getElementById('btn-txt-upload');
+        const btnTxt = document.getElementById('btn-txt-upload-admin');
         btnTxt.innerText = "ENVIANDO AO SERVIDOR...";
         btnTxt.disabled = true;
 
-        const { data, error } = await _supabase.storage
-            .from('destaques')
-            .upload('imagem_principal', file, {
-                cacheControl: '0',
-                upsert: true
-            });
+        const { data, error } = await _supabase.storage.from('destaques').upload('imagem_principal', file, { cacheControl: '0', upsert: true });
 
         if (error) {
-            alert("Erro! Você criou o Bucket 'destaques' e deixou como PÚBLICO no painel do Supabase?");
-            console.error(error);
-            btnTxt.innerText = "SELECIONAR NOVA IMAGEM DO CELULAR";
+            alert("Erro de comunicação com o Supabase.");
+            btnTxt.innerText = "ATUALIZAR BANNER";
             btnTxt.disabled = false;
             return;
         }
@@ -411,19 +444,17 @@
         const imgBanner = document.getElementById('img-destaque');
         imgBanner.src = `${SUPABASE_URL}/storage/v1/object/public/destaques/imagem_principal?t=${Date.now()}`;
         
-        btnTxt.innerText = "IMAGEM ATUALIZADA COM SUCESSO!";
+        btnTxt.innerText = "ATUALIZADO COM SUCESSO!";
         setTimeout(() => {
-            btnTxt.innerText = "SELECIONAR NOVA IMAGEM DO CELULAR";
+            btnTxt.innerText = "ATUALIZAR BANNER";
             btnTxt.disabled = false;
-            document.getElementById('painel-admin-destaque').classList.add('hidden'); 
         }, 3000);
     }
 
-    // === REGRA DE SEGURANÇA: REGEX CONSOLIDADAS ===
+    // === REGRAS DE NEGÓCIO E SEGURANÇA ===
     const regexNomeComposto = /^[A-Za-zÀ-ÿ0-9\s]{2,50}$/; 
     const regexMilhar = /^\d{1,3}(\.\d{3})*(,\d{2})?$|^\d+(,\d{1,2})?$/;
 
-    // === REGRA DE SEGURANÇA: SANITIZAÇÃO XSS ===
     function escapeHTML(str) {
         return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
     }
@@ -432,13 +463,9 @@
         const sec = document.getElementById(id);
         const btn = document.getElementById(btnId);
         if (sec.classList.contains('hidden')) {
-            sec.classList.remove('hidden');
-            btn.innerText = 'OCULTAR';
-            btn.style.background = 'rgba(255,255,255,0.1)';
+            sec.classList.remove('hidden'); btn.innerText = 'OCULTAR'; btn.style.background = 'rgba(255,255,255,0.1)';
         } else {
-            sec.classList.add('hidden');
-            btn.innerText = 'EXIBIR';
-            btn.style.background = 'transparent';
+            sec.classList.add('hidden'); btn.innerText = 'EXIBIR'; btn.style.background = 'transparent';
         }
     }
 
@@ -447,6 +474,7 @@
         if (!session) window.location.href = "login.html";
         else { 
             USUARIO_LOGADO = session.user; 
+            iniciarRadarOnline(); 
             carregarDados(); 
         }
     }
@@ -488,9 +516,7 @@
     function setFiltroStatus(status, btn) {
         const container = btn.parentElement;
         container.querySelectorAll('.chip-filtro').forEach(b => b.classList.remove('ativo'));
-        btn.classList.add('ativo');
-        filtroStatusReceb = status;
-        renderizar();
+        btn.classList.add('ativo'); filtroStatusReceb = status; renderizar();
     }
 
     function salvarTudo() {
@@ -498,9 +524,7 @@
         db_financeiro.forEach(i => {
             if (i.status === 'pago' || i.status === 'gasto') return;
             const p = i.data.split('/'); const v = new Date(p[2], p[1]-1, p[0]);
-            if (v < hoje && i.status !== 'negociando') { 
-                i.status = 'atrasado'; i.motivo_atraso = `Atrasado ${Math.ceil(Math.abs(hoje-v)/(86400000))} dias`; 
-            }
+            if (v < hoje && i.status !== 'negociando') { i.status = 'atrasado'; i.motivo_atraso = `Atrasado ${Math.ceil(Math.abs(hoje-v)/(86400000))} dias`; }
         });
         renderizar();
     }
@@ -517,131 +541,63 @@
         const ups = { status: status, valor_pago_parcial: pagoAgora, valor_restante: restante };
         await _supabase.from('financeiro').update(ups).eq('id', itemSelecionado.id);
         Object.assign(itemSelecionado, ups);
-        fecharModal(); 
-        salvarTudo();
+        fecharModal(); salvarTudo();
     }
 
     async function registrarDivida() {
-        const n = document.getElementById('reg-nome').value.trim();
-        const v = document.getElementById('reg-valor').value.trim();
-        const d = document.getElementById('reg-data').value.trim();
-
+        const n = document.getElementById('reg-nome').value.trim(); const v = document.getElementById('reg-valor').value.trim(); const d = document.getElementById('reg-data').value.trim();
         if (!regexNomeComposto.test(n)) { alert("Nome inválido! Utilize apenas letras e números (Ex: VT Lixeiro)."); return; }
         if (!regexMilhar.test(v)) { alert("Valor inválido! Formato exigido: 50.000 ou 50.000,00"); return; }
-
         if (n && v && USUARIO_LOGADO) { 
-            const novo = { 
-                nome: escapeHTML(n), 
-                valor: escapeHTML(v), 
-                data: tratarDataAxon(d), 
-                status: 'pendente', 
-                tipo: 'recebimento', 
-                user_id: USUARIO_LOGADO.id, 
-                valor_pago_parcial: 0, 
-                valor_restante: formatarParaSoma(v) 
-            };
+            const novo = { nome: escapeHTML(n), valor: escapeHTML(v), data: tratarDataAxon(d), status: 'pendente', tipo: 'recebimento', user_id: USUARIO_LOGADO.id, valor_pago_parcial: 0, valor_restante: formatarParaSoma(v) };
             await _supabase.from('financeiro').insert([novo]);
-            ['reg-nome', 'reg-valor', 'reg-data'].forEach(i => document.getElementById(i).value = ''); 
-            carregarDados();
+            ['reg-nome', 'reg-valor', 'reg-data'].forEach(i => document.getElementById(i).value = ''); carregarDados();
         }
     }
 
     async function registrarVenda() {
-        const n = document.getElementById('venda-nome').value.trim();
-        const v = document.getElementById('venda-valor').value.trim();
-
+        const n = document.getElementById('venda-nome').value.trim(); const v = document.getElementById('venda-valor').value.trim();
         if (!regexNomeComposto.test(n)) { alert("Nome inválido! Utilize apenas letras e números."); return; }
         if (!regexMilhar.test(v)) { alert("Valor inválido! Formato exigido: 50.000 ou 50.000,00"); return; }
-
         if(n && v && USUARIO_LOGADO) {
-            const nova = { 
-                nome: escapeHTML(n), 
-                valor: escapeHTML(v), 
-                data: formatarDataHoje(), 
-                status: 'pago', 
-                tipo: 'venda_diaria', 
-                user_id: USUARIO_LOGADO.id, 
-                valor_pago_parcial: 0, 
-                valor_restante: 0 
-            };
+            const nova = { nome: escapeHTML(n), valor: escapeHTML(v), data: formatarDataHoje(), status: 'pago', tipo: 'venda_diaria', user_id: USUARIO_LOGADO.id, valor_pago_parcial: 0, valor_restante: 0 };
             await _supabase.from('financeiro').insert([nova]);
-            document.getElementById('venda-nome').value=''; 
-            document.getElementById('venda-valor').value=''; 
-            carregarDados();
+            document.getElementById('venda-nome').value=''; document.getElementById('venda-valor').value=''; carregarDados();
         }
     }
 
     async function registrarGasto() {
-        const n = document.getElementById('gasto-nome').value.trim();
-        const v = document.getElementById('gasto-valor').value.trim();
-
+        const n = document.getElementById('gasto-nome').value.trim(); const v = document.getElementById('gasto-valor').value.trim();
         if (!regexNomeComposto.test(n)) { alert("Nome/Descrição inválida! Utilize apenas letras e números."); return; }
         if (!regexMilhar.test(v)) { alert("Valor inválido! Formato exigido: 50.000 ou 50.000,00"); return; }
-
         if(n && v && USUARIO_LOGADO) {
-            const novo = { 
-                nome: escapeHTML(n), 
-                valor: escapeHTML(v), 
-                data: formatarDataHoje(), 
-                status: 'gasto', 
-                tipo: 'gasto_diario', 
-                user_id: USUARIO_LOGADO.id, 
-                valor_pago_parcial: 0, 
-                valor_restante: formatarParaSoma(v) 
-            };
+            const novo = { nome: escapeHTML(n), valor: escapeHTML(v), data: formatarDataHoje(), status: 'gasto', tipo: 'gasto_diario', user_id: USUARIO_LOGADO.id, valor_pago_parcial: 0, valor_restante: formatarParaSoma(v) };
             await _supabase.from('financeiro').insert([novo]);
-            document.getElementById('gasto-nome').value=''; 
-            document.getElementById('gasto-valor').value=''; 
-            carregarDados();
+            document.getElementById('gasto-nome').value=''; document.getElementById('gasto-valor').value=''; carregarDados();
         }
     }
 
-    async function deletarItem(tab, id) {
-        if (!confirm("Excluir permanentemente?")) return;
-        await _supabase.from(tab).delete().eq('id', id);
-        carregarDados();
-    }
-
-    async function deletarDia(tipo, data) {
-        if (!confirm(`Tem certeza que deseja excluir TODOS os registros do dia ${data}?`)) return;
-        await _supabase.from('financeiro').delete().eq('tipo', tipo).eq('data', data);
-        carregarDados();
-    }
+    async function deletarItem(tab, id) { if (!confirm("Excluir permanentemente?")) return; await _supabase.from(tab).delete().eq('id', id); carregarDados(); }
+    async function deletarDia(tipo, data) { if (!confirm(`Excluir TODOS os registros do dia ${data}?`)) return; await _supabase.from('financeiro').delete().eq('tipo', tipo).eq('data', data); carregarDados(); }
 
     function renderizar() {
-        let calcRecPago = 0, calcRecPend = 0;
-        let sP_Rec = 0, sPa_Rec = 0, sA_Rec = 0;
-        
+        let calcRecPago = 0, calcRecPend = 0; let sP_Rec = 0, sPa_Rec = 0, sA_Rec = 0;
         let calcGastosHoje = 0, calcGastosSemana = 0, calcGastosMes = 0;
         let calcVendasHoje = 0, calcVendasSemana = 0, calcVendasMes = 0;
 
-        const calcHoje = formatarDataHoje();
-        const ontemStr = getOntemStr();
-        const dataAtual = new Date();
-        const mesAtual = dataAtual.getMonth();
-        const anoAtual = dataAtual.getFullYear();
-        
-        const inicioSemana = new Date(dataAtual);
-        inicioSemana.setDate(dataAtual.getDate() - dataAtual.getDay());
-        inicioSemana.setHours(0,0,0,0);
-        
-        const fimSemana = new Date(inicioSemana);
-        fimSemana.setDate(inicioSemana.getDate() + 6);
-        fimSemana.setHours(23,59,59,999);
+        const calcHoje = formatarDataHoje(); const ontemStr = getOntemStr(); const dataAtual = new Date();
+        const mesAtual = dataAtual.getMonth(); const anoAtual = dataAtual.getFullYear();
+        const inicioSemana = new Date(dataAtual); inicioSemana.setDate(dataAtual.getDate() - dataAtual.getDay()); inicioSemana.setHours(0,0,0,0);
+        const fimSemana = new Date(inicioSemana); fimSemana.setDate(inicioSemana.getDate() + 6); fimSemana.setHours(23,59,59,999);
 
         const lRec = document.getElementById('lista-status'); if(lRec) lRec.innerHTML = '';
-        const lGas = document.getElementById('lista-gastos');
-        const lVen = document.getElementById('lista-vendas'); 
+        const lGas = document.getElementById('lista-gastos'); const lVen = document.getElementById('lista-vendas'); 
 
-        let histGastos = {};
-        let histVendas = {};
-        let htmlGastosHoje = '';
-        let htmlVendasHoje = '';
+        let histGastos = {}; let histVendas = {}; let htmlGastosHoje = ''; let htmlVendasHoje = '';
 
         db_financeiro.forEach(i => {
             const tot = formatarParaSoma(i.valor); const pg = i.valor_pago_parcial || 0; const res = tot - pg;
-            const pts = i.data.split('/');
-            const dItem = new Date(pts[2], pts[1]-1, pts[0], 12, 0, 0);
+            const pts = i.data.split('/'); const dItem = new Date(pts[2], pts[1]-1, pts[0], 12, 0, 0);
             const isMesmoMes = dItem.getMonth() === mesAtual && dItem.getFullYear() === anoAtual;
             const isMesmaSemana = dItem >= inicioSemana && dItem <= fimSemana;
 
@@ -659,79 +615,25 @@
                 }
             }
             else if (i.tipo === 'gasto_diario') {
-                if (isMesmaSemana) calcGastosSemana += tot;
-                if (isMesmoMes) calcGastosMes += tot;
-
-                if(i.data === calcHoje) {
-                    calcGastosHoje += tot;
-                    htmlGastosHoje += `<div class="item-axon"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
-                } else {
-                    if(!histGastos[i.data]) histGastos[i.data] = { total: 0, html: '' };
-                    histGastos[i.data].total += tot;
-                    histGastos[i.data].html += `<div class="flex justify-between items-center bg-black/40 p-2 rounded mb-1 mt-1"><div><div class="text-xs text-white">${i.nome}</div><div class="text-[9px] text-slate-500">R$ ${i.valor}</div></div><div class="btn-lixeira text-sm" onclick="event.stopPropagation(); deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
-                }
+                if (isMesmaSemana) calcGastosSemana += tot; if (isMesmoMes) calcGastosMes += tot;
+                if(i.data === calcHoje) { calcGastosHoje += tot; htmlGastosHoje += `<div class="item-axon"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`; } 
+                else { if(!histGastos[i.data]) histGastos[i.data] = { total: 0, html: '' }; histGastos[i.data].total += tot; histGastos[i.data].html += `<div class="flex justify-between items-center bg-black/40 p-2 rounded mb-1 mt-1"><div><div class="text-xs text-white">${i.nome}</div><div class="text-[9px] text-slate-500">R$ ${i.valor}</div></div><div class="btn-lixeira text-sm" onclick="event.stopPropagation(); deletarItem('financeiro', ${i.id})">🗑️</div></div>`; }
             }
             else if (i.tipo === 'venda_diaria') {
-                if (isMesmaSemana) calcVendasSemana += tot;
-                if (isMesmoMes) calcVendasMes += tot;
-
-                if (i.data === calcHoje) {
-                    calcVendasHoje += tot;
-                    htmlVendasHoje += `<div class="item-axon" style="border-left: 3px solid var(--axon-aurora); padding-left: 10px;"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
-                } else {
-                    if(!histVendas[i.data]) histVendas[i.data] = { total: 0, html: '' };
-                    histVendas[i.data].total += tot;
-                    histVendas[i.data].html += `<div class="flex justify-between items-center bg-black/40 p-2 rounded mb-1 mt-1"><div><div class="text-xs text-white">${i.nome}</div><div class="text-[9px] text-slate-500">R$ ${i.valor}</div></div><div class="btn-lixeira text-sm" onclick="event.stopPropagation(); deletarItem('financeiro', ${i.id})">🗑️</div></div>`;
-                }
+                if (isMesmaSemana) calcVendasSemana += tot; if (isMesmoMes) calcVendasMes += tot;
+                if (i.data === calcHoje) { calcVendasHoje += tot; htmlVendasHoje += `<div class="item-axon" style="border-left: 3px solid var(--axon-aurora); padding-left: 10px;"><div><div class="font-bold text-white">${i.nome}</div><div class="text-[10px] text-slate-400">R$ ${i.valor} | ${i.data}</div></div><div class="btn-lixeira" onclick="deletarItem('financeiro', ${i.id})">🗑️</div></div>`; } 
+                else { if(!histVendas[i.data]) histVendas[i.data] = { total: 0, html: '' }; histVendas[i.data].total += tot; histVendas[i.data].html += `<div class="flex justify-between items-center bg-black/40 p-2 rounded mb-1 mt-1"><div><div class="text-xs text-white">${i.nome}</div><div class="text-[9px] text-slate-500">R$ ${i.valor}</div></div><div class="btn-lixeira text-sm" onclick="event.stopPropagation(); deletarItem('financeiro', ${i.id})">🗑️</div></div>`; }
             }
         });
 
-        let htmlGastosPassado = '';
-        Object.keys(histGastos).sort((a,b) => {
-            let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1);
-        }).forEach(data => {
-            let label = (data === ontemStr) ? "TOTAL GASTO ONTEM" : `TOTAL GASTO DIA ${data}`;
-            let idUnico = 'hist-gasto-' + data.replace(/\//g, '-');
-            htmlGastosPassado += `
-            <div class="item-axon flex-col items-stretch" style="background: rgba(168, 85, 247, 0.05); border-left: 3px solid var(--roxo-gasto); padding-left: 10px; cursor: pointer;" onclick="document.getElementById('${idUnico}').classList.toggle('hidden')">
-                <div class="flex justify-between items-center w-full">
-                    <div><div class="font-bold text-[11px] text-[var(--roxo-gasto)] uppercase">${label}</div><div class="text-[9px] text-slate-500 mt-1">EXIBIR DETALHES ▼</div></div>
-                    <div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histGastos[data].total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="event.stopPropagation(); deletarDia('gasto_diario', '${data}')">🗑️</div></div>
-                </div>
-                <div id="${idUnico}" class="hidden w-full mt-3 pt-3 border-t border-[#1e293b]/50">${histGastos[data].html}</div>
-            </div>`;
-        });
+        let htmlGastosPassado = ''; Object.keys(histGastos).sort((a,b) => { let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1); }).forEach(data => { let label = (data === ontemStr) ? "TOTAL GASTO ONTEM" : `TOTAL GASTO DIA ${data}`; let idUnico = 'hist-gasto-' + data.replace(/\//g, '-'); htmlGastosPassado += `<div class="item-axon flex-col items-stretch" style="background: rgba(168, 85, 247, 0.05); border-left: 3px solid var(--roxo-gasto); padding-left: 10px; cursor: pointer;" onclick="document.getElementById('${idUnico}').classList.toggle('hidden')"><div class="flex justify-between items-center w-full"><div><div class="font-bold text-[11px] text-[var(--roxo-gasto)] uppercase">${label}</div><div class="text-[9px] text-slate-500 mt-1">EXIBIR DETALHES ▼</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histGastos[data].total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="event.stopPropagation(); deletarDia('gasto_diario', '${data}')">🗑️</div></div></div><div id="${idUnico}" class="hidden w-full mt-3 pt-3 border-t border-[#1e293b]/50">${histGastos[data].html}</div></div>`; });
+        let htmlVendasPassado = ''; Object.keys(histVendas).sort((a,b) => { let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1); }).forEach(data => { let label = (data === ontemStr) ? "TOTAL VENDAS ONTEM" : `TOTAL VENDAS DIA ${data}`; let idUnico = 'hist-venda-' + data.replace(/\//g, '-'); htmlVendasPassado += `<div class="item-axon flex-col items-stretch" style="background: rgba(45, 212, 191, 0.05); border-left: 3px solid var(--axon-aurora); padding-left: 10px; cursor: pointer;" onclick="document.getElementById('${idUnico}').classList.toggle('hidden')"><div class="flex justify-between items-center w-full"><div><div class="font-bold text-[11px] text-[var(--axon-aurora)] uppercase">${label}</div><div class="text-[9px] text-slate-500 mt-1">EXIBIR DETALHES ▼</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histVendas[data].total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="event.stopPropagation(); deletarDia('venda_diaria', '${data}')">🗑️</div></div></div><div id="${idUnico}" class="hidden w-full mt-3 pt-3 border-t border-[#1e293b]/50">${histVendas[data].html}</div></div>`; });
 
-        let htmlVendasPassado = '';
-        Object.keys(histVendas).sort((a,b) => {
-            let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1);
-        }).forEach(data => {
-            let label = (data === ontemStr) ? "TOTAL VENDAS ONTEM" : `TOTAL VENDAS DIA ${data}`;
-            let idUnico = 'hist-venda-' + data.replace(/\//g, '-');
-            htmlVendasPassado += `
-            <div class="item-axon flex-col items-stretch" style="background: rgba(45, 212, 191, 0.05); border-left: 3px solid var(--axon-aurora); padding-left: 10px; cursor: pointer;" onclick="document.getElementById('${idUnico}').classList.toggle('hidden')">
-                <div class="flex justify-between items-center w-full">
-                    <div><div class="font-bold text-[11px] text-[var(--axon-aurora)] uppercase">${label}</div><div class="text-[9px] text-slate-500 mt-1">EXIBIR DETALHES ▼</div></div>
-                    <div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histVendas[data].total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="event.stopPropagation(); deletarDia('venda_diaria', '${data}')">🗑️</div></div>
-                </div>
-                <div id="${idUnico}" class="hidden w-full mt-3 pt-3 border-t border-[#1e293b]/50">${histVendas[data].html}</div>
-            </div>`;
-        });
+        if(lGas) lGas.innerHTML = htmlGastosHoje + htmlGastosPassado; if(lVen) lVen.innerHTML = htmlVendasHoje + htmlVendasPassado;
 
-        if(lGas) lGas.innerHTML = htmlGastosHoje + htmlGastosPassado;
-        if(lVen) lVen.innerHTML = htmlVendasHoje + htmlVendasPassado;
-
-        document.getElementById('total-receber').innerText = `R$ ${sP_Rec.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-        document.getElementById('total-receb-pago').innerText = `R$ ${sPa_Rec.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-        document.getElementById('total-receb-atraso').innerText = `R$ ${sA_Rec.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-
-        document.getElementById('total-vendas-hoje').innerText = `R$ ${calcVendasHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-        document.getElementById('total-vendas-semana').innerText = `R$ ${calcVendasSemana.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-        document.getElementById('total-vendas-mes').innerText = `R$ ${calcVendasMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-
-        document.getElementById('total-gastos-hoje').innerText = `R$ ${calcGastosHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-        document.getElementById('total-gastos-semana').innerText = `R$ ${calcGastosSemana.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-        document.getElementById('total-gastos-mes').innerText = `R$ ${calcGastosMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        document.getElementById('total-receber').innerText = `R$ ${sP_Rec.toLocaleString('pt-BR', {minimumFractionDigits:2})}`; document.getElementById('total-receb-pago').innerText = `R$ ${sPa_Rec.toLocaleString('pt-BR', {minimumFractionDigits:2})}`; document.getElementById('total-receb-atraso').innerText = `R$ ${sA_Rec.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        document.getElementById('total-vendas-hoje').innerText = `R$ ${calcVendasHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`; document.getElementById('total-vendas-semana').innerText = `R$ ${calcVendasSemana.toLocaleString('pt-BR', {minimumFractionDigits:2})}`; document.getElementById('total-vendas-mes').innerText = `R$ ${calcVendasMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        document.getElementById('total-gastos-hoje').innerText = `R$ ${calcGastosHoje.toLocaleString('pt-BR', {minimumFractionDigits:2})}`; document.getElementById('total-gastos-semana').innerText = `R$ ${calcGastosSemana.toLocaleString('pt-BR', {minimumFractionDigits:2})}`; document.getElementById('total-gastos-mes').innerText = `R$ ${calcGastosMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
     }
 
     verificarSessao();
