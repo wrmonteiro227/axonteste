@@ -448,7 +448,7 @@
         const resFormato = (formatarParaSoma(item.valor) - (item.valor_pago_parcial || 0)).toLocaleString('pt-BR', {minimumFractionDigits: 2});
         
         // Frase formal, intuitiva e com marketing discreto consolidada
-        const mensagem = `Olá, ${item.nome}. Tudo bem?\n\nConsta em meu sistema que hoje, *${item.data}*, é a data que combinamos para o acerto do valor de *R$ ${resFormato}*.\n\nAguardo seu retorno para darmos baixa no sistema. Agradeço!\n\n--\n🧾 Gestão simplificada via: axonpro.online`;
+        const mensagem = `Olá, ${item.nome}. Tudo bem?\n\nConsta aqui na lista que hoje, *${item.data}*, é a data que combinamos para o acerto do valor de *R$ ${resFormato}*.\n\nAguardo seu retorno para darmos baixa no sistema. Agradeço!\n\n--\n🧾 Gestão simplificada via: axonpro.online`;
         
         const link = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
         window.open(link, '_blank');
