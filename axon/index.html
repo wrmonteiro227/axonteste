@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AXON LITE - Gestão Rápida</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#00ffaa">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -13,14 +13,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        /* --- IDENTIDADE VISUAL AXON GALAXY PRESERVADA --- */
+        /* --- IDENTIDADE VISUAL AXON GALAXY ATUALIZADA --- */
         :root {
-            --axon-blue: #3b82f6;
-            --axon-aurora: #2dd4bf;
+            --axon-green: #00ffaa; /* Verde Aurora Boreal */
+            --axon-aurora: #2dd4bf; /* Ciano Aurora */
             --preto-profundo: #020617; 
             --cinza-card: rgba(15, 23, 42, 0.85); 
             --cinza-hover: #1e293b;
-            --roxo-gasto: #a855f7;
+            --vermelho-gasto: #ff2a55; /* Vermelho vibrante para gastos */
         }
 
         body {
@@ -45,12 +45,18 @@
             pointer-events: none;
             animation: moveNebula 20s infinite alternate ease-in-out;
         }
-        .n1 { background: radial-gradient(circle, var(--axon-blue), transparent 70%); top: -10%; right: -10%; }
-        .n2 { background: radial-gradient(circle, var(--roxo-gasto), transparent 70%); bottom: -10%; left: -10%; animation-delay: -10s; }
+        .n1 { background: radial-gradient(circle, var(--axon-green), transparent 70%); top: -10%; right: -10%; }
+        .n2 { background: radial-gradient(circle, var(--vermelho-gasto), transparent 70%); bottom: -10%; left: -10%; animation-delay: -10s; }
 
         @keyframes moveNebula {
             from { transform: translate(0, 0) scale(1); }
             to { transform: translate(100px, 100px) scale(1.2); }
+        }
+
+        /* --- EFEITO RGB NO TOPO --- */
+        @keyframes rgb-anim {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
         }
 
         .barra-topo {
@@ -60,17 +66,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 2px solid var(--axon-blue);
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.15);
         }
 
+        .barra-topo::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, #ff0055, #ffaa00, #00ffaa, #00d4ff, #8b00ff, #ff0055);
+            background-size: 200% auto;
+            animation: rgb-anim 4s linear infinite;
+            z-index: 1001;
+        }
+
+        /* --- LOGO RGB --- */
         .logo-axon {
-            background: linear-gradient(to right, var(--axon-blue), var(--axon-aurora));
+            background: linear-gradient(90deg, #ff0055, #ffaa00, #00ffaa, #00d4ff, #8b00ff, #ff0055);
+            background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            animation: rgb-anim 4s linear infinite;
             font-weight: 900;
             font-size: 2rem;
             letter-spacing: 12px;
@@ -79,13 +97,13 @@
         }
 
         .grid-resumo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .resumo-card { background: #000; border: 1px solid rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; text-align: center; }
+        .resumo-card { background: #000; border: 1px solid rgba(0, 255, 170, 0.1); padding: 15px; border-radius: 10px; text-align: center; }
         .resumo-label { color: #64748b; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .resumo-valor { color: var(--axon-blue); font-weight: 900; font-size: 1.1rem; }
+        .resumo-valor { color: var(--axon-green); font-weight: 900; font-size: 1.1rem; }
 
         .card-axon {
             background: var(--cinza-card);
-            border: 1px solid rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(0, 255, 170, 0.1);
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
@@ -103,22 +121,22 @@
         .axon-input { background: #000; border: 1px solid #1e293b; color: #fff; padding: 12px; border-radius: 8px; outline: none; font-size: 0.85rem; flex-grow: 1; }
 
         .btn-send {
-            background: linear-gradient(45deg, var(--axon-blue), var(--axon-aurora)); color: #fff; border: none; border-radius: 8px; width: 48px;
+            background: linear-gradient(45deg, var(--axon-green), var(--axon-aurora)); color: #000; border: none; border-radius: 8px; width: 48px;
             display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
         }
         .btn-send:active { transform: scale(0.9); }
 
         .badge { font-size: 0.65rem; font-weight: 800; padding: 4px 10px; border-radius: 5px; text-transform: uppercase; cursor: pointer; }
-        .badge-pendente { background: rgba(59, 130, 246, 0.1); color: var(--axon-blue); border: 1px solid var(--axon-blue); }
+        .badge-pendente { background: rgba(0, 255, 170, 0.1); color: var(--axon-green); border: 1px solid var(--axon-green); }
         .badge-pago { background: rgba(45, 212, 191, 0.1); color: var(--axon-aurora); border: 1px solid var(--axon-aurora); }
         .badge-atrasado { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; }
-        .badge-negociando { background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid #a855f7; }
+        .badge-negociando { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid #f59e0b; }
 
         .btn-lixeira { color: #334155; transition: 0.3s; cursor: pointer; font-size: 1.1rem; }
         .btn-lixeira:hover { color: #ef4444; }
 
         .chip-filtro { padding: 6px 12px; font-size: 0.6rem; border-radius: 20px; border: 1px solid #1e293b; background: rgba(0,0,0,0.3); color: #475569; cursor: pointer; transition: 0.3s; margin-right: 5px; white-space: nowrap; }
-        .chip-filtro.ativo { border-color: var(--axon-blue); color: var(--axon-blue); background: rgba(59, 130, 246, 0.1); }
+        .chip-filtro.ativo { border-color: var(--axon-green); color: var(--axon-green); background: rgba(0, 255, 170, 0.1); }
 
         /* --- MODAIS --- */
         #modal-financeiro, #modal-admin-login, #modal-admin-master {
@@ -129,8 +147,8 @@
         #modal-admin-master { display: none; flex-direction: column; justify-content: flex-start; overflow-y: auto; z-index: 3000; }
 
         .modal-card {
-            background: var(--cinza-card); border: 1px solid var(--axon-blue); border-radius: 24px; padding: 30px; width: 100%;
-            max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
+            background: var(--cinza-card); border: 1px solid var(--axon-green); border-radius: 24px; padding: 30px; width: 100%;
+            max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(0, 255, 170, 0.15);
         }
 
         .pulse-online { animation: pulseGreen 2s infinite; }
@@ -153,7 +171,7 @@
 
         <div class="card-axon p-0 overflow-hidden">
             <div class="flex justify-between items-center p-5 bg-[#0f172a] cursor-pointer" onclick="toggleSecao('sec-devedores', 'btn-dev')">
-                <h2 class="text-xl font-black tracking-widest" style="color: var(--axon-blue);">DEVEDORES</h2>
+                <h2 class="text-xl font-black tracking-widest" style="color: var(--axon-green);">DEVEDORES</h2>
                 <button id="btn-dev" class="badge badge-pendente px-4 py-2">EXIBIR</button>
             </div>
             
@@ -221,31 +239,31 @@
 
         <div class="card-axon p-0 overflow-hidden">
             <div class="flex justify-between items-center p-5 bg-[#0f172a] cursor-pointer" onclick="toggleSecao('sec-gastos', 'btn-gas')">
-                <h2 class="text-xl font-black tracking-widest" style="color: var(--roxo-gasto);">GASTOS</h2>
-                <button id="btn-gas" class="badge badge-pendente px-4 py-2" style="color:var(--roxo-gasto); border-color:var(--roxo-gasto);">EXIBIR</button>
+                <h2 class="text-xl font-black tracking-widest" style="color: var(--vermelho-gasto);">GASTOS</h2>
+                <button id="btn-gas" class="badge badge-pendente px-4 py-2" style="color:var(--vermelho-gasto); border-color:var(--vermelho-gasto);">EXIBIR</button>
             </div>
 
             <div id="sec-gastos" class="hidden p-5 border-t border-[#1e293b]">
                 <div class="grid-resumo mb-4">
-                    <div class="resumo-card" style="border-color: var(--roxo-gasto);">
+                    <div class="resumo-card" style="border-color: var(--vermelho-gasto);">
                         <div class="resumo-label">Gasto Hoje</div>
-                        <div id="total-gastos-hoje" class="resumo-valor" style="color: var(--roxo-gasto); font-size: 1.5rem;">R$ 0,00</div>
+                        <div id="total-gastos-hoje" class="resumo-valor" style="color: var(--vermelho-gasto); font-size: 1.5rem;">R$ 0,00</div>
                     </div>
-                    <div class="resumo-card" style="border-color: var(--roxo-gasto);">
+                    <div class="resumo-card" style="border-color: var(--vermelho-gasto);">
                         <div class="resumo-label">Essa Semana</div>
-                        <div id="total-gastos-semana" class="resumo-valor" style="color: var(--roxo-gasto); font-size: 1.1rem;">R$ 0,00</div>
+                        <div id="total-gastos-semana" class="resumo-valor" style="color: var(--vermelho-gasto); font-size: 1.1rem;">R$ 0,00</div>
                     </div>
-                    <div class="resumo-card" style="border-color: var(--roxo-gasto);">
+                    <div class="resumo-card" style="border-color: var(--vermelho-gasto);">
                         <div class="resumo-label">Esse Mês</div>
-                        <div id="total-gastos-mes" class="resumo-valor" style="color: var(--roxo-gasto); font-size: 1.1rem;">R$ 0,00</div>
+                        <div id="total-gastos-mes" class="resumo-valor" style="color: var(--vermelho-gasto); font-size: 1.1rem;">R$ 0,00</div>
                     </div>
                 </div>
 
-                <h2 class="titulo-lista" style="color: var(--roxo-gasto);"><span>●</span> Registrar Gasto Hoje</h2>
+                <h2 class="titulo-lista" style="color: var(--vermelho-gasto);"><span>●</span> Registrar Gasto Hoje</h2>
                 <div class="axon-input-group"><input type="text" id="gasto-nome" class="axon-input" placeholder="O QUE COMPROU?" autocomplete="off"></div>
                 <div class="axon-input-group">
                     <input type="text" id="gasto-valor" class="axon-input" placeholder="VALOR (R$):" autocomplete="off">
-                    <button class="btn-send" style="background: var(--roxo-gasto);" onclick="registrarGasto()"><svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/></svg></button>
+                    <button class="btn-send" style="background: var(--vermelho-gasto); color: white;" onclick="registrarGasto()"><svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/></svg></button>
                 </div>
                 <div id="lista-gastos" class="mt-4"></div>
             </div>
@@ -255,7 +273,7 @@
             <p style="font-size: 0.6rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">Destaques</p>
             
             <a href="https://axonpro.online" target="_blank" style="display: block; text-decoration: none; overflow: hidden; border-radius: 8px; background: #1e293b; min-height: 100px;">
-                <img id="img-destaque" src="https://zqvfnykxwlcozvawqgrn.supabase.co/storage/v1/object/public/destaques/imagem_principal" alt="Espaço em Destaque" style="width: 100%; height: auto; min-height: 100px; object-fit: cover; display: block; border-radius: 8px; border: 1px solid #475569; transition: 0.3s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#475569'">
+                <img id="img-destaque" src="https://zqvfnykxwlcozvawqgrn.supabase.co/storage/v1/object/public/destaques/imagem_principal" alt="Espaço em Destaque" style="width: 100%; height: auto; min-height: 100px; object-fit: cover; display: block; border-radius: 8px; border: 1px solid #475569; transition: 0.3s;" onmouseover="this.style.borderColor='#00ffaa'" onmouseout="this.style.borderColor='#475569'">
             </a>
         </div>
 
@@ -304,7 +322,7 @@
 
     <div id="modal-admin-master">
         <div class="w-full max-w-3xl mx-auto pt-8 pb-12 px-4">
-            <div class="flex justify-between items-center mb-8 border-b border-[#3b82f6]/30 pb-4">
+            <div class="flex justify-between items-center mb-8 border-b border-[#00ffaa]/30 pb-4">
                 <div>
                     <h1 class="logo-axon" style="font-size: 1.5rem;">CONTROL PANEL</h1>
                     <p class="text-xs text-gray-400 uppercase tracking-widest mt-1">Visão Geral da Plataforma</p>
@@ -315,7 +333,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="card-axon text-center flex flex-col justify-center border-t-2 border-t-[#3b82f6]">
+                <div class="card-axon text-center flex flex-col justify-center border-t-2 border-t-[#00ffaa]">
                     <div class="text-[9px] text-gray-400 uppercase tracking-widest mb-2 font-bold">Contas Ativas (Globais)</div>
                     <div id="metric-registrados" class="text-4xl font-black text-white">Carregando...</div>
                 </div>
@@ -333,7 +351,7 @@
                 <p class="text-xs text-gray-500 mb-6">Altere a imagem de destaque que aparece no rodapé do aplicativo de todos os usuários em tempo real.</p>
                 
                 <input type="file" id="input-upload-destaque-admin" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="uploadNovoDestaque(event)">
-                <button onclick="document.getElementById('input-upload-destaque-admin').click()" id="btn-txt-upload-admin" class="w-full bg-[#3b82f6]/10 text-[#3b82f6] font-black py-4 rounded-xl border border-[#3b82f6]/50 hover:bg-[#3b82f6]/20 transition text-xs tracking-widest">
+                <button onclick="document.getElementById('input-upload-destaque-admin').click()" id="btn-txt-upload-admin" class="w-full bg-[#00ffaa]/10 text-[#00ffaa] font-black py-4 rounded-xl border border-[#00ffaa]/50 hover:bg-[#00ffaa]/20 transition text-xs tracking-widest">
                     ATUALIZAR BANNER
                 </button>
             </div>
@@ -560,6 +578,52 @@
     async function deletarItem(tab, id) { if (!confirm("Excluir permanentemente?")) return; await _supabase.from(tab).delete().eq('id', id); carregarDados(); }
     async function deletarDia(tipo, data) { if (!confirm(`Excluir TODOS os registros do dia ${data}?`)) return; await _supabase.from('financeiro').delete().eq('tipo', tipo).eq('data', data); carregarDados(); }
 
+    // === NOVA FUNÇÃO: EDITAR VALOR DO DEVEDOR ===
+    async function editarValorTotalDevedor(id) {
+        const item = db_financeiro.find(x => x.id === id);
+        if (!item) return;
+
+        const novoValorStr = prompt(`Editar valor total de ${item.nome}:\nDigite o novo valor (Ex: 50,00 ou 1500,00):`, item.valor);
+        
+        if (novoValorStr === null) return;
+        const novoValorTrimmed = novoValorStr.trim();
+        
+        if (!regexMilhar.test(novoValorTrimmed)) { 
+            alert("Valor inválido! Formato exigido: 50.000 ou 50.000,00"); 
+            return; 
+        }
+
+        const novoValorNum = formatarParaSoma(novoValorTrimmed);
+        const pgAtual = item.valor_pago_parcial || 0;
+        let novoRestante = novoValorNum - pgAtual;
+        let novoStatus = item.status;
+
+        if (novoRestante <= 0 && novoValorNum > 0) {
+            novoStatus = 'pago';
+            novoRestante = 0;
+        } else if (novoRestante > 0 && novoStatus === 'pago') {
+            novoStatus = pgAtual > 0 ? 'negociando' : 'pendente';
+        }
+
+        const { error } = await _supabase.from('financeiro').update({ 
+            valor: escapeHTML(novoValorTrimmed), 
+            valor_restante: novoRestante,
+            status: novoStatus
+        }).eq('id', id);
+
+        if (error) {
+            alert("Erro ao atualizar o valor no servidor.");
+            console.error(error);
+            return;
+        }
+
+        item.valor = escapeHTML(novoValorTrimmed);
+        item.valor_restante = novoRestante;
+        item.status = novoStatus;
+        
+        salvarTudo();
+    }
+
     function renderizar() {
         let calcRecPago = 0, calcRecPend = 0; let sP_Rec = 0, sPa_Rec = 0, sA_Rec = 0;
         let calcGastosHoje = 0, calcGastosSemana = 0, calcGastosMes = 0;
@@ -596,9 +660,18 @@
                         lRec.innerHTML += `
                         <div class="item-axon">
                             <div>
-                                <div class="font-bold text-white">${i.nome}</div>
-                                <div class="text-[10px] text-slate-400">R$ ${i.valor} | Venc: ${i.data}</div>
-                                ${pg > 0 && i.status !== 'pago' ? `<div class="text-[9px] mt-1"><span style="color:#2dd4bf">Rec: R$ ${pg.toLocaleString('pt-BR')}</span> | <span style="color:#64748b">Falta: R$ ${res.toLocaleString('pt-BR')}</span></div>` : ''}
+                                <div class="font-bold text-white text-base">${i.nome}</div>
+                                
+                                <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-2">
+                                    <span class="flex items-center gap-1 cursor-pointer hover:bg-white/10 px-1 py-0.5 -ml-1 rounded transition" onclick="editarValorTotalDevedor(${i.id})" title="Clique para editar o valor">
+                                        <span class="font-bold text-slate-200">R$ ${i.valor}</span>
+                                        <span class="text-[9px]">✏️</span>
+                                    </span>
+                                    <span class="text-slate-600">|</span>
+                                    <span>Venc: <span class="text-slate-300">${i.data}</span></span>
+                                </div>
+
+                                ${pg > 0 && i.status !== 'pago' ? `<div class="text-[10px] mt-1.5 bg-black/30 inline-block px-2 py-1 rounded border border-[#1e293b]"><span style="color:#2dd4bf">Rec: R$ ${pg.toLocaleString('pt-BR')}</span> <span class="text-slate-600 mx-1">|</span> <span style="color:#64748b">Falta: R$ ${res.toLocaleString('pt-BR')}</span></div>` : ''}
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="badge ${cls}" onclick="abrirModalPagamento(${i.id})">${txt}</span>
@@ -629,7 +702,7 @@
             }
         });
 
-        let htmlGastosPassado = ''; Object.keys(histGastos).sort((a,b) => { let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1); }).forEach(data => { let label = (data === ontemStr) ? "TOTAL GASTO ONTEM" : `TOTAL GASTO DIA ${data}`; let idUnico = 'hist-gasto-' + data.replace(/\//g, '-'); htmlGastosPassado += `<div class="item-axon flex-col items-stretch" style="background: rgba(168, 85, 247, 0.05); border-left: 3px solid var(--roxo-gasto); padding-left: 10px; cursor: pointer;" onclick="document.getElementById('${idUnico}').classList.toggle('hidden')"><div class="flex justify-between items-center w-full"><div><div class="font-bold text-[11px] text-[var(--roxo-gasto)] uppercase">${label}</div><div class="text-[9px] text-slate-500 mt-1">EXIBIR DETALHES ▼</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histGastos[data].total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="event.stopPropagation(); deletarDia('gasto_diario', '${data}')">🗑️</div></div></div><div id="${idUnico}" class="hidden w-full mt-3 pt-3 border-t border-[#1e293b]/50">${histGastos[data].html}</div></div>`; });
+        let htmlGastosPassado = ''; Object.keys(histGastos).sort((a,b) => { let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1); }).forEach(data => { let label = (data === ontemStr) ? "TOTAL GASTO ONTEM" : `TOTAL GASTO DIA ${data}`; let idUnico = 'hist-gasto-' + data.replace(/\//g, '-'); htmlGastosPassado += `<div class="item-axon flex-col items-stretch" style="background: rgba(255, 42, 85, 0.05); border-left: 3px solid var(--vermelho-gasto); padding-left: 10px; cursor: pointer;" onclick="document.getElementById('${idUnico}').classList.toggle('hidden')"><div class="flex justify-between items-center w-full"><div><div class="font-bold text-[11px] text-[var(--vermelho-gasto)] uppercase">${label}</div><div class="text-[9px] text-slate-500 mt-1">EXIBIR DETALHES ▼</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histGastos[data].total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="event.stopPropagation(); deletarDia('gasto_diario', '${data}')">🗑️</div></div></div><div id="${idUnico}" class="hidden w-full mt-3 pt-3 border-t border-[#1e293b]/50">${histGastos[data].html}</div></div>`; });
         let htmlVendasPassado = ''; Object.keys(histVendas).sort((a,b) => { let [d1,m1,y1] = a.split('/'); let [d2,m2,y2] = b.split('/'); return new Date(y2,m2-1,d2) - new Date(y1,m1-1,d1); }).forEach(data => { let label = (data === ontemStr) ? "TOTAL VENDAS ONTEM" : `TOTAL VENDAS DIA ${data}`; let idUnico = 'hist-venda-' + data.replace(/\//g, '-'); htmlVendasPassado += `<div class="item-axon flex-col items-stretch" style="background: rgba(45, 212, 191, 0.05); border-left: 3px solid var(--axon-aurora); padding-left: 10px; cursor: pointer;" onclick="document.getElementById('${idUnico}').classList.toggle('hidden')"><div class="flex justify-between items-center w-full"><div><div class="font-bold text-[11px] text-[var(--axon-aurora)] uppercase">${label}</div><div class="text-[9px] text-slate-500 mt-1">EXIBIR DETALHES ▼</div></div><div class="flex items-center gap-3"><div class="font-black text-white">R$ ${histVendas[data].total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="btn-lixeira" onclick="event.stopPropagation(); deletarDia('venda_diaria', '${data}')">🗑️</div></div></div><div id="${idUnico}" class="hidden w-full mt-3 pt-3 border-t border-[#1e293b]/50">${histVendas[data].html}</div></div>`; });
 
         if(lGas) lGas.innerHTML = htmlGastosHoje + htmlGastosPassado; if(lVen) lVen.innerHTML = htmlVendasHoje + htmlVendasPassado;
